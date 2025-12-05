@@ -1,9 +1,11 @@
 package com.holidayanalyzer.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "countries")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Country {
 
     @Id

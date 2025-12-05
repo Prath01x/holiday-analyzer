@@ -34,6 +34,9 @@ public class Holiday {
     @Column
     private String types;
 
+    @Column
+    private String subdivisionCodes; // comma-separated ISO 3166-2 codes, e.g. "DE-BW,DE-BY"
+
     @Column(nullable = false)
     private int year;
 
@@ -102,6 +105,14 @@ public class Holiday {
 
     public void setTypes(String types) {
         this.types = types;
+    }
+
+    public String getSubdivisionCodes() {
+        return subdivisionCodes;
+    }
+
+    public void setSubdivisionCodes(String subdivisionCodes) {
+        this.subdivisionCodes = subdivisionCodes;
     }
 
     public int getYear() {
