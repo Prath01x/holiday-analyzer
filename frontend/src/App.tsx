@@ -1,27 +1,29 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import Dashboard from './components/Dashboard';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentView, setCurrentView] = useState<'dashboard' | 'admin'>('dashboard');
 
   return (
-    <>
-      <div>
-        <h1>Holiday Analyzer</h1>
-      </div>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app">
+      {currentView === 'dashboard' ? (
+        <Dashboard />
+      ) : (
+        <AdminPanel onBack={() => setCurrentView('dashboard')} />
+      )}
+      
+      <footer className="app-footer">
+        <button 
+          onClick={() => setCurrentView(currentView === 'dashboard' ? 'admin' : 'dashboard')}
+          className="footer-link"
+        >
+          {currentView === 'dashboard' ? 'Admin-Bereich' : 'Zurück zum Dashboard'}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
