@@ -1,4 +1,4 @@
-import { UpcomingHoliday } from '../types';
+import { UpcomingHoliday } from '../../types.ts';
 import './CurrentHolidays.css';
 
 interface Props {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import VacationPlanner from './VacationPlanner';
-import BestWeekends from './BestWeekends';
-import CurrentHolidays from './CurrentHolidays';
+import BestWeekends from './unused/BestWeekends.tsx';
+import CurrentHolidays from './unused/CurrentHolidays.tsx';
 import { api } from '../api';
 import { Country, SubdivisionInfo, UpcomingHoliday, WeekendAnalysis } from '../types';
 import './Dashboard.css';

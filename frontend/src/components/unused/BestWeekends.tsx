@@ -1,4 +1,4 @@
-import { WeekendAnalysis } from '../types';
+import { WeekendAnalysis } from '../../types.ts';
 import './BestWeekends.css';
 
 interface Props {
