@@ -34,8 +34,9 @@ public class Holiday {
     @Column
     private String types;
 
-    @Column
-    private String subdivisionCodes; // comma-separated ISO 3166-2 codes, e.g. "DE-BW,DE-BY"
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @Column(nullable = false)
     private int year;
@@ -107,12 +108,12 @@ public class Holiday {
         this.types = types;
     }
 
-    public String getSubdivisionCodes() {
-        return subdivisionCodes;
+    public Region getRegion() {
+        return region;
     }
 
-    public void setSubdivisionCodes(String subdivisionCodes) {
-        this.subdivisionCodes = subdivisionCodes;
+    public void setRegion(Region region) {
+        this.region = region;
     }
 
     public int getYear() {

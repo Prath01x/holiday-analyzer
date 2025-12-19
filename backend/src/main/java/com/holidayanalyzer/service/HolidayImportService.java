@@ -2,8 +2,10 @@ package com.holidayanalyzer.service;
 
 import com.holidayanalyzer.model.Country;
 import com.holidayanalyzer.model.Holiday;
+import com.holidayanalyzer.model.Region;
 import com.holidayanalyzer.repository.CountryRepository;
 import com.holidayanalyzer.repository.HolidayRepository;
+import com.holidayanalyzer.repository.RegionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,13 +24,16 @@ public class HolidayImportService {
     private final RestTemplate restTemplate;
     private final CountryRepository countryRepository;
     private final HolidayRepository holidayRepository;
+    private final RegionRepository regionRepository;
 
     public HolidayImportService(RestTemplate restTemplate,
                                 CountryRepository countryRepository,
-                                HolidayRepository holidayRepository) {
+                                HolidayRepository holidayRepository,
+                                RegionRepository regionRepository) {
         this.restTemplate = restTemplate;
         this.countryRepository = countryRepository;
         this.holidayRepository = holidayRepository;
+        this.regionRepository = regionRepository;
     }
 
     public List<Holiday> importPublicHolidays(String countryCode, int year) {
@@ -56,30 +61,59 @@ public class HolidayImportService {
         }
 
         List<Holiday> toSave = Arrays.stream(response)
-            .map(dto -> mapToEntity(dto, country))
+            .flatMap(dto -> mapToEntities(dto, country).stream())
             .toList();
 
         return holidayRepository.saveAll(toSave);
     }
 
-    private Holiday mapToEntity(NagerPublicHolidayDto dto, Country country) {
-        Holiday holiday = new Holiday();
-        holiday.setCountry(country);
-        holiday.setCountryCode(dto.getCountryCode());
-        holiday.setDate(LocalDate.parse(dto.getDate()));
-        holiday.setLocalName(dto.getLocalName());
-        holiday.setEnglishName(dto.getName());
-        holiday.setGlobalHoliday(Boolean.TRUE.equals(dto.getGlobal()));
-        if (dto.getTypes() != null) {
-            holiday.setTypes(String.join(",", dto.getTypes()));
+    private List<Holiday> mapToEntities(NagerPublicHolidayDto dto, Country country) {
+        LocalDate date = LocalDate.parse(dto.getDate());
+        int year = date.getYear();
+
+        // If no counties specified, it's a national holiday
+        if (dto.getCounties() == null || dto.getCounties().length == 0) {
+            Holiday holiday = new Holiday();
+            holiday.setCountry(country);
+            holiday.setCountryCode(dto.getCountryCode());
+            holiday.setDate(date);
+            holiday.setLocalName(dto.getLocalName());
+            holiday.setEnglishName(dto.getName());
+            holiday.setGlobalHoliday(Boolean.TRUE.equals(dto.getGlobal()));
+            if (dto.getTypes() != null) {
+                holiday.setTypes(String.join(",", dto.getTypes()));
+            }
+            holiday.setRegion(null); // National holiday
+            holiday.setYear(year);
+            return List.of(holiday);
         }
 
-        // Map regional subdivision codes if present (Nager.Date counties/subdivisionCodes)
-        if (dto.getCounties() != null) {
-            holiday.setSubdivisionCodes(String.join(",", dto.getCounties()));
-        }
-        holiday.setYear(holiday.getDate().getYear());
-        return holiday;
+        // Regional holiday - create one Holiday record per region
+        return Arrays.stream(dto.getCounties())
+            .map(regionCode -> {
+                Holiday holiday = new Holiday();
+                holiday.setCountry(country);
+                holiday.setCountryCode(dto.getCountryCode());
+                holiday.setDate(date);
+                holiday.setLocalName(dto.getLocalName());
+                holiday.setEnglishName(dto.getName());
+                holiday.setGlobalHoliday(Boolean.TRUE.equals(dto.getGlobal()));
+                if (dto.getTypes() != null) {
+                    holiday.setTypes(String.join(",", dto.getTypes()));
+                }
+                holiday.setYear(year);
+
+                // Look up Region entity by code
+                Region region = regionRepository.findByCode(regionCode).orElse(null);
+                if (region == null) {
+                    log.warn("Region not found for code: {}. Skipping this regional holiday.", regionCode);
+                    return null;
+                }
+                holiday.setRegion(region);
+                return holiday;
+            })
+            .filter(h -> h != null) // Filter out holidays where region wasn't found
+            .toList();
     }
 
     public static class NagerPublicHolidayDto {

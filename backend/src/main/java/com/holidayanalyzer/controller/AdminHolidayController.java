@@ -31,7 +31,7 @@ public class AdminHolidayController {
 
     @PostMapping("/import-all")
     public ResponseEntity<Map<String, Integer>> importAllCountries(@RequestParam("year") int year) {
-        List<String> countries = List.of("DE", "AT", "CH", "FR", "BE", "NL", "IT");
+        List<String> countries = List.of("DE", "AT", "CH", "FR", "ES", "NL", "IT");
 
         Map<String, Integer> summary = new LinkedHashMap<>();
         for (String country : countries) {

@@ -16,13 +16,13 @@ public interface HolidayRepository extends JpaRepository<Holiday, Long> {
         where h.countryCode = :countryCode
           and h.year = :year
           and (
-            h.globalHoliday = true
-            or (h.subdivisionCodes is not null and h.subdivisionCodes like concat('%', :subdivision, '%'))
+            h.region is null
+            or h.region.code = :regionCode
           )
         """)
-    List<Holiday> findByCountryCodeYearAndSubdivision(
+    List<Holiday> findByCountryCodeYearAndRegion(
             @Param("countryCode") String countryCode,
             @Param("year") int year,
-            @Param("subdivision") String subdivision
+            @Param("regionCode") String regionCode
     );
 }

@@ -22,14 +22,14 @@ public class HolidayController {
     @GetMapping
     public List<Holiday> getHolidays(@RequestParam("country") String countryCode,
                                      @RequestParam("year") int year,
-                                     @RequestParam(value = "subdivision", required = false) String subdivision) {
+                                     @RequestParam(value = "region", required = false) String regionCode) {
 
-        if (subdivision == null || subdivision.isBlank()) {
+        if (regionCode == null || regionCode.isBlank()) {
             // Country-level view: all holidays for that country/year
             return holidayRepository.findByCountryCodeAndYear(countryCode, year);
         }
 
-        // Region-level view: all global holidays + those that match the subdivision
-        return holidayRepository.findByCountryCodeYearAndSubdivision(countryCode, year, subdivision);
+        // Region-level view: national holidays + regional holidays for that region
+        return holidayRepository.findByCountryCodeYearAndRegion(countryCode, year, regionCode);
     }
 }
