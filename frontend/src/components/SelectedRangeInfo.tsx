@@ -18,9 +18,15 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     );
 
     // Sammle alle Feiertage im Zeitraum
+    console.log('SelectedRangeInfo - daysInRange:', daysInRange.length);
+    console.log('SelectedRangeInfo - days with holidays:', daysInRange.filter(d => d.holidays && d.holidays.length > 0).length);
+    
     const holidaysInRange = daysInRange
         .filter(day => day.holidays && day.holidays.length > 0)
         .flatMap(day => day.holidays.map(holiday => ({ ...holiday, date: day.date })));
+    
+    console.log('SelectedRangeInfo - holidaysInRange:', holidaysInRange.length);
+    console.log('SelectedRangeInfo - sample holiday:', holidaysInRange[0]);
 
     // Gruppiere nach Land/Region
     const groupedHolidays: { [key: string]: any[] } = {};
@@ -28,7 +34,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     holidaysInRange.forEach(holiday => {
         const key = holiday.globalHoliday
             ? holiday.countryCode
-            : `${holiday.countryCode}-${holiday.subdivisionCodes}`;
+            : `${holiday.countryCode}-${holiday.region?.code}`;
 
         if (!groupedHolidays[key]) {
             groupedHolidays[key] = [];
@@ -67,8 +73,13 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
         return countries[code] || code;
     };
 
-    const getRegionPopulation = (subdivisionCodes: string | null): number => {
-        // Mock Populations - später aus API
+    const getRegionPopulation = (region: { code: string; population?: number } | null | undefined): number => {
+        if (!region) return 0;
+        
+        // Use region population if available
+        if (region.population) return region.population;
+        
+        // Mock Populations - fallback
         const populations: { [key: string]: number } = {
             'DE-BW': 11100000,
             'DE-BY': 13100000,
@@ -79,11 +90,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
             'AT-9': 1900000,
         };
 
-        if (!subdivisionCodes) return 0;
-
-        return subdivisionCodes.split(',').reduce((sum, code) => {
-            return sum + (populations[code.trim()] || 0);
-        }, 0);
+        return populations[region.code] || 0;
     };
 
     const getCountryPopulation = (code: string): number => {
@@ -116,7 +123,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
                         const countryCode = firstHoliday.countryCode;
                         const population = isGlobal
                             ? getCountryPopulation(countryCode)
-                            : getRegionPopulation(firstHoliday.subdivisionCodes);
+                            : getRegionPopulation(firstHoliday.region);
 
                         return (
                             <div key={key} className="holiday-group">
@@ -125,7 +132,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
                                         <span className="country-flag">{countryCode}</span>
                                         <div className="location-details">
                                             <strong className="location-name">
-                                                {isGlobal ? getCountryName(countryCode) : firstHoliday.subdivisionCodes}
+                                                {isGlobal ? getCountryName(countryCode) : firstHoliday.region?.code}
                                             </strong>
                                             <span className="location-type">
                         {isGlobal ? 'Landesweit' : 'Regional'}

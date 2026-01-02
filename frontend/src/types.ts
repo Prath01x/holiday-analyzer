@@ -7,6 +7,14 @@ export interface Country {
   population: number | null;
 }
 
+export interface Region {
+  id: number;
+  code: string;
+  name: string;
+  country: Country;
+  population: number;
+}
+
 export interface Holiday {
   id: number;
   date: string;
@@ -15,8 +23,9 @@ export interface Holiday {
   countryCode: string;
   globalHoliday: boolean;
   types: string | null;
-  subdivisionCodes: string | null;
+  region: Region | null;
   year: number;
+  subdivisionCodes?: string[];
 }
 
 // Frontend-specific types for analysis

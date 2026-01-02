@@ -40,22 +40,26 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
     onFilterChange(selectedCountries, selectedRegions);
   }, [selectedCountry, selectedRegion, onFilterChange]);
 
-  // Lade Kalender-Daten für die nächsten 3 Monate SOFORT
+  // Lade Kalender-Daten für das gesamte Jahr
   useEffect(() => {
-    const loadInitialCalendarData = async () => {
+    const loadCalendarData = async () => {
       setLoading(true);
       try {
-        const today = new Date();
-        const threeMonthsLater = new Date(today);
-        threeMonthsLater.setMonth(today.getMonth() + 3);
+        // Load data for current year and next year to cover all possible date selections
+        const currentYear = new Date().getFullYear();
+        const startDate = `${currentYear}-01-01`;
+        const endDate = `${currentYear + 2}-12-31`;
+
+        console.log('VacationPlanner loading data from', startDate, 'to', endDate);
 
         const data = await api.analyzeDateRange(
-            today.toISOString().split('T')[0],
-            threeMonthsLater.toISOString().split('T')[0],
+            startDate,
+            endDate,
             selectedCountry || undefined,
             selectedRegion || undefined
         );
         setCalendarData(data);
+        console.log('VacationPlanner loaded', data.length, 'days of data');
       } catch (error) {
         console.error('Error loading calendar data:', error);
       } finally {
@@ -63,7 +67,7 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
       }
     };
 
-    loadInitialCalendarData();
+    loadCalendarData();
   }, [selectedCountry, selectedRegion]);
 
   const handleCountryChange = (countryCode: string) => {

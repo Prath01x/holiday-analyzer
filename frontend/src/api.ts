@@ -1,7 +1,8 @@
 import { Country, Holiday, SubdivisionInfo, DayAnalysis, WeekendAnalysis, UpcomingHoliday } from './types';
 
 // Toggle für Mock-Daten
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
+const API_BASE = 'http://localhost:8080';
 
 // Mock-Daten Generatoren
 const generateMockCountries = (): Country[] => [
@@ -31,7 +32,7 @@ const generateMockHolidays = (): Holiday[] => [
     countryCode: 'DE',
     globalHoliday: true,
     types: 'Public',
-    subdivisionCodes: null,
+    region: null,
     year: 2025
   },
   {
@@ -42,7 +43,7 @@ const generateMockHolidays = (): Holiday[] => [
     countryCode: 'DE',
     globalHoliday: true,
     types: 'Public',
-    subdivisionCodes: null,
+    region: null,
     year: 2025
   },
   {
@@ -53,7 +54,7 @@ const generateMockHolidays = (): Holiday[] => [
     countryCode: 'DE',
     globalHoliday: false,
     types: 'Public',
-    subdivisionCodes: 'DE-BW,DE-BY',
+    region: { id: 1, code: 'DE-BW', name: 'Baden-Württemberg', country: { id: 1, code: 'DE', name: 'Deutschland', population: 83200000 }, population: 11100000 },
     year: 2025
   },
 ];
@@ -199,7 +200,7 @@ export const api = {
     if (USE_MOCK_DATA) {
       return Promise.resolve(generateMockCountries());
     }
-    const response = await fetch('/api/countries');
+    const response = await fetch(`${API_BASE}/api/countries`);
     return response.json();
   },
 
@@ -208,7 +209,7 @@ export const api = {
     if (USE_MOCK_DATA) {
       return Promise.resolve(generateMockSubdivisions());
     }
-    const response = await fetch('/api/subdivisions');
+    const response = await fetch(`${API_BASE}/api/regions`);
     return response.json();
   },
 
@@ -222,17 +223,15 @@ export const api = {
     if (year) params.append('year', year.toString());
     if (subdivision) params.append('subdivision', subdivision);
 
-    const response = await fetch(`/api/holidays?${params}`);
+    const response = await fetch(`${API_BASE}/api/holidays?${params}`);
     return response.json();
   },
-
-  // Füge diese Funktion in deine api.ts ein, ersetze die leere Mock-Implementierung:
 
   async analyzeDateRange(
       startDate: string,
       endDate: string,
       country?: string,
-      subdivision?: string
+      _subdivision?: string
   ): Promise<DayAnalysis[]> {
     if (USE_MOCK_DATA) {
       // Generiere Mock-Daten für jeden Tag im Zeitraum
@@ -287,12 +286,66 @@ export const api = {
       return Promise.resolve(analyses);
     }
 
-    const params = new URLSearchParams({ startDate, endDate });
-    if (country) params.append('country', country);
-    if (subdivision) params.append('subdivision', subdivision);
-
-    const response = await fetch(`/api/analysis/date-range?${params}`);
-    return response.json();
+    // Determine which years we need to fetch
+    const startYear = new Date(startDate).getFullYear();
+    const endYear = new Date(endDate).getFullYear();
+    const countryCode = country || 'DE';
+    
+    console.log('Fetching vacation load for:', { countryCode, startDate, endDate, startYear, endYear });
+    
+    // Fetch data for each year separately
+    const allAnalyses: DayAnalysis[] = [];
+    
+    for (let year = startYear; year <= endYear; year++) {
+      try {
+        console.log(`Fetching data for year ${year}...`);
+        
+        // Fetch vacation load for this year
+        const vacationResponse = await fetch(`${API_BASE}/api/vacation-load?countryCode=${countryCode}&year=${year}`);
+        const vacationLoad = await vacationResponse.json();
+        
+        // Fetch holidays for this year
+        const holidaysResponse = await fetch(`${API_BASE}/api/holidays?country=${countryCode}&year=${year}`);
+        const holidays: Holiday[] = await holidaysResponse.json();
+        
+        console.log(`Year ${year}: Fetched ${holidays.length} holidays, ${vacationLoad.dailyLoads.length} days`);
+        
+        // Transform VacationLoadResponse to DayAnalysis[] for this year
+        const yearAnalyses: DayAnalysis[] = vacationLoad.dailyLoads.map((day: any) => {
+          const dayHolidays = holidays.filter(h => h.date === day.date);
+          const totalPop = day.totalPopulation || 0;
+          const countryPop = 83240000; // Germany population - should be dynamic
+          const loadPercentage = countryPop > 0 ? Math.round((totalPop / countryPop) * 100) : 0;
+          
+          let level: DayAnalysis['level'];
+          if (loadPercentage < 10) level = 'very_low';
+          else if (loadPercentage < 25) level = 'low';
+          else if (loadPercentage < 50) level = 'medium';
+          else if (loadPercentage < 75) level = 'high';
+          else level = 'very_high';
+          
+          return {
+            date: day.date,
+            loadPercentage,
+            level,
+            holidays: dayHolidays
+          };
+        });
+        
+        allAnalyses.push(...yearAnalyses);
+      } catch (error) {
+        console.error(`Error fetching data for year ${year}:`, error);
+      }
+    }
+    
+    // Filter to only include dates in the requested range
+    const analyses = allAnalyses.filter(day => day.date >= startDate && day.date <= endDate);
+    
+    console.log('Total analyses:', analyses.length, 'days');
+    console.log('Days with holidays:', analyses.filter(a => a.holidays.length > 0).length);
+    console.log('Sample day with holidays:', analyses.find(a => a.holidays.length > 0));
+    
+    return analyses;
   },
 
   // Best Weekends (alle Länder)
@@ -300,7 +353,7 @@ export const api = {
     if (USE_MOCK_DATA) {
       return Promise.resolve(generateMockWeekends(count, [], []));
     }
-    const response = await fetch(`/api/analysis/best-weekends?count=${count}`);
+    const response = await fetch(`${API_BASE}/api/analysis/best-weekends?count=${count}`);
     return response.json();
   },
 
@@ -317,7 +370,7 @@ export const api = {
     countries.forEach(c => params.append('countries', c));
     regions.forEach(r => params.append('regions', r));
 
-    const response = await fetch(`/api/analysis/best-weekends?${params}`);
+    const response = await fetch(`${API_BASE}/api/analysis/best-weekends?${params}`);
     return response.json();
   },
 
@@ -326,7 +379,7 @@ export const api = {
     if (USE_MOCK_DATA) {
       return Promise.resolve(generateMockUpcomingHolidays(days, [], []));
     }
-    const response = await fetch(`/api/analysis/upcoming?days=${days}`);
+    const response = await fetch(`${API_BASE}/api/analysis/upcoming?days=${days}`);
     return response.json();
   },
 
@@ -343,7 +396,7 @@ export const api = {
     countries.forEach(c => params.append('countries', c));
     regions.forEach(r => params.append('regions', r));
 
-    const response = await fetch(`/api/analysis/upcoming?${params}`);
+    const response = await fetch(`${API_BASE}/api/analysis/upcoming?${params}`);
     return response.json();
   },
 };

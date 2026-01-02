@@ -22,7 +22,7 @@ interface MockRegion {
 const AdminPanel = ({ onBack }: Props) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [countries, setCountries] = useState<Country[]>([]);
-  const [subdivisions] = useState<SubdivisionInfo[]>([]);
+  const [subdivisions, setSubdivisions] = useState<SubdivisionInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -59,7 +59,7 @@ const AdminPanel = ({ onBack }: Props) => {
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
 
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvType, setCsvType] = useState<'country' | 'region' | 'holiday'>('country');
+  const [csvType] = useState<'country' | 'region' | 'holiday'>('country');
 
   // Mock Regionen - später vom Backend laden
   const mockRegionsByCountry: Record<string, MockRegion[]> = {
@@ -83,6 +83,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   useEffect(() => {
     fetchCountries();
+    fetchSubdivisions();
   }, []);
 
   const fetchCountries = async () => {
@@ -91,6 +92,15 @@ const AdminPanel = ({ onBack }: Props) => {
       setCountries(data);
     } catch (error) {
       console.error('Error fetching countries:', error);
+    }
+  };
+
+  const fetchSubdivisions = async () => {
+    try {
+      const data = await api.getSubdivisions();
+      setSubdivisions(data);
+    } catch (error) {
+      console.error('Error fetching subdivisions:', error);
     }
   };
 
@@ -144,7 +154,7 @@ const AdminPanel = ({ onBack }: Props) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteCountry = async (id: number) => {
+  const handleDeleteCountry = async (_id: number) => {
     if (!window.confirm('Land wirklich löschen? Alle zugehörigen Regionen und Feiertage gehen verloren (CASCADE).')) {
       return;
     }
@@ -245,7 +255,7 @@ const AdminPanel = ({ onBack }: Props) => {
       startDate: holiday.date,
       endDate: holiday.date,
       countryCode: holiday.countryCode,
-      regionCodes: holiday.subdivisionCodes ? [holiday.subdivisionCodes] : [],
+      regionCodes: holiday.region?.code ? [holiday.region.code] : [],
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -281,7 +291,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   // CSV Import
 
-  const handleCSVImport = async (e: React.FormEvent) => {
+  const _handleCSVImport = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!csvFile) {
@@ -748,8 +758,8 @@ const AdminPanel = ({ onBack }: Props) => {
                                 <span className="result-name">{holiday.localName}</span>
                                 <span className="result-date">{holiday.date}</span>
                                 <span className="result-country">{holiday.countryCode}</span>
-                                {holiday.subdivisionCodes && (
-                                    <span className="result-region">{holiday.subdivisionCodes}</span>
+                                {holiday.region?.code && (
+                                    <span className="result-region">{holiday.region.code}</span>
                                 )}
                               </div>
                               <div className="result-actions">
