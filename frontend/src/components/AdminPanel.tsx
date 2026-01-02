@@ -217,8 +217,6 @@ const AdminPanel = ({ onBack }: Props) => {
         }
       }
 
-      console.log('Sending to backend:', holidaysToCreate);
-
       showMessage('success', `${holidaysToCreate.length} Eintrag/Einträge erfolgreich gespeichert`);
       resetHolidayForm();
     } catch (error) {
@@ -291,8 +289,8 @@ const AdminPanel = ({ onBack }: Props) => {
 
   // CSV Import
 
-  const _handleCSVImport = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const _handleCSVImport = async (_e: React.FormEvent) => {
+    _e.preventDefault();
 
     if (!csvFile) {
       showMessage('error', 'Bitte CSV-Datei auswählen');

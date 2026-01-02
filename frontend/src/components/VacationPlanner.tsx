@@ -50,8 +50,6 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
         const startDate = `${currentYear}-01-01`;
         const endDate = `${currentYear + 2}-12-31`;
 
-        console.log('VacationPlanner loading data from', startDate, 'to', endDate);
-
         const data = await api.analyzeDateRange(
             startDate,
             endDate,
@@ -59,7 +57,6 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
             selectedRegion || undefined
         );
         setCalendarData(data);
-        console.log('VacationPlanner loaded', data.length, 'days of data');
       } catch (error) {
         console.error('Error loading calendar data:', error);
       } finally {

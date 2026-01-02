@@ -118,7 +118,6 @@ const generateMockUpcomingHolidays = (
     countries: string[],
     regions: string[]
 ): UpcomingHoliday[] => {
-  const mockCountries = generateMockCountries();
   const today = new Date();
   const endDate = new Date(today);
   endDate.setDate(today.getDate() + days);
@@ -291,15 +290,11 @@ export const api = {
     const endYear = new Date(endDate).getFullYear();
     const countryCode = country || 'DE';
     
-    console.log('Fetching vacation load for:', { countryCode, startDate, endDate, startYear, endYear });
-    
     // Fetch data for each year separately
     const allAnalyses: DayAnalysis[] = [];
     
     for (let year = startYear; year <= endYear; year++) {
       try {
-        console.log(`Fetching data for year ${year}...`);
-        
         // Fetch vacation load for this year
         const vacationResponse = await fetch(`${API_BASE}/api/vacation-load?countryCode=${countryCode}&year=${year}`);
         const vacationLoad = await vacationResponse.json();
@@ -307,8 +302,6 @@ export const api = {
         // Fetch holidays for this year
         const holidaysResponse = await fetch(`${API_BASE}/api/holidays?country=${countryCode}&year=${year}`);
         const holidays: Holiday[] = await holidaysResponse.json();
-        
-        console.log(`Year ${year}: Fetched ${holidays.length} holidays, ${vacationLoad.dailyLoads.length} days`);
         
         // Transform VacationLoadResponse to DayAnalysis[] for this year
         const yearAnalyses: DayAnalysis[] = vacationLoad.dailyLoads.map((day: any) => {
@@ -340,10 +333,6 @@ export const api = {
     
     // Filter to only include dates in the requested range
     const analyses = allAnalyses.filter(day => day.date >= startDate && day.date <= endDate);
-    
-    console.log('Total analyses:', analyses.length, 'days');
-    console.log('Days with holidays:', analyses.filter(a => a.holidays.length > 0).length);
-    console.log('Sample day with holidays:', analyses.find(a => a.holidays.length > 0));
     
     return analyses;
   },

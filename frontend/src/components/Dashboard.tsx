@@ -1,9 +1,7 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import VacationPlanner from './VacationPlanner';
-import BestWeekends from './unused/BestWeekends.tsx';
-import CurrentHolidays from './unused/CurrentHolidays.tsx';
 import { api } from '../api';
-import { Country, SubdivisionInfo, UpcomingHoliday, WeekendAnalysis } from '../types';
+import { Country, SubdivisionInfo } from '../types';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -29,8 +27,8 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  const handleFilterChange = useCallback((countries: string[], regions: string[]) => {
-    console.log('Filter changed:', countries, regions);
+  const handleFilterChange = useCallback((_countries: string[], _regions: string[]) => {
+    // Filter change handler - currently not used for data fetching
   }, []);
 
   if (loading) {

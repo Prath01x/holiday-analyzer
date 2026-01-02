@@ -18,15 +18,9 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     );
 
     // Sammle alle Feiertage im Zeitraum
-    console.log('SelectedRangeInfo - daysInRange:', daysInRange.length);
-    console.log('SelectedRangeInfo - days with holidays:', daysInRange.filter(d => d.holidays && d.holidays.length > 0).length);
-    
     const holidaysInRange = daysInRange
         .filter(day => day.holidays && day.holidays.length > 0)
         .flatMap(day => day.holidays.map(holiday => ({ ...holiday, date: day.date })));
-    
-    console.log('SelectedRangeInfo - holidaysInRange:', holidaysInRange.length);
-    console.log('SelectedRangeInfo - sample holiday:', holidaysInRange[0]);
 
     // Gruppiere nach Land/Region
     const groupedHolidays: { [key: string]: any[] } = {};
