@@ -1,5 +1,10 @@
 # Holiday Analyzer
 
+[![Backend CI](https://github.com/Prath01x/holiday-analyzer/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/Prath01x/holiday-analyzer/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/frontend-ci.yml)
+[![Docker Build](https://github.com/Prath01x/holiday-analyzer/actions/workflows/docker-build.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/docker-build.yml)
+[![Code Quality](https://github.com/Prath01x/holiday-analyzer/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/code-quality.yml)
+
 A cloud-native application for analyzing public holidays across European countries.
 
 ## 📋 Project Overview
@@ -22,6 +27,8 @@ This application is built as part of the Cloud Native Software Engineering cours
 ### DevOps
 - **Docker** & **Docker Compose** for containerization
 - **PostgreSQL 15** database
+- **GitHub Actions** for CI/CD pipeline
+- **ESLint** & **Prettier** for code quality
 
 ## 📁 Project Structure
 
@@ -281,6 +288,36 @@ docker ps
 docker-compose down
 docker-compose up --build --force-recreate
 ```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+This project includes a comprehensive CI/CD pipeline using GitHub Actions:
+
+### Automated Workflows
+
+- **Backend CI**: Runs tests, builds, and code quality checks on backend changes
+- **Frontend CI**: Lints, tests, and builds frontend on code changes
+- **Docker Build**: Builds and pushes Docker images to GitHub Container Registry
+- **Code Quality**: Runs Prettier, dependency review, and security scans
+
+### Running Locally
+
+```bash
+# Frontend linting and formatting
+cd frontend
+npm run lint          # Check for linting errors
+npm run lint:fix      # Auto-fix linting errors
+npm run format:check  # Check code formatting
+npm run format        # Auto-format code
+
+# Backend tests
+cd backend
+mvn test
+```
+
+For more details, see [CI/CD Documentation](.github/workflows/README.md)
 
 ---
 
