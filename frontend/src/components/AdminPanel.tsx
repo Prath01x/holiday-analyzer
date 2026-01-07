@@ -325,33 +325,28 @@ const AdminPanel = ({ onBack }: Props) => {
     setEditingHoliday(null);
   };
 
-  // CSV Import
-
-  const handleCSVImport = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!csvFile) {
-      showMessage('error', 'Bitte CSV-Datei auswählen');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // TODO: Backend CSV Import Endpoints
-      console.log('Import CSV:', csvFile.name);
-      showMessage('success', `CSV erfolgreich importiert: ${csvFile.name}`);
-      setCsvFile(null);
-
-      if (csvType === 'country') {
-        fetchCountries();
-      }
-    } catch (error) {
-      showMessage('error', 'Fehler beim CSV-Import');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // CSV Import - TODO: Implement when backend endpoint is ready
+  // Commented out to avoid ESLint unused variable warning
+  // const handleCSVImport = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!csvFile) {
+  //     showMessage('error', 'Bitte CSV-Datei auswählen');
+  //     return;
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     console.log('Import CSV:', csvFile.name);
+  //     showMessage('success', `CSV erfolgreich importiert: ${csvFile.name}`);
+  //     setCsvFile(null);
+  //     if (csvType === 'country') {
+  //       fetchCountries();
+  //     }
+  //   } catch (error) {
+  //     showMessage('error', 'Fehler beim CSV-Import');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Selection Helpers
 

@@ -175,7 +175,7 @@ const generateMockUpcomingHolidays = (
   ];
 
   // Filtere nach Auswahl
-  let filtered = holidays.filter(h => {
+  const filtered = holidays.filter(h => {
     const holidayDate = new Date(h.date);
     if (holidayDate < today || holidayDate > endDate) return false;
 

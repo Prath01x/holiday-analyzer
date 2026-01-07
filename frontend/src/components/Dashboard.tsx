@@ -27,7 +27,7 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  const handleFilterChange = useCallback((_countries: string[], _regions: string[]) => {
+  const handleFilterChange = useCallback(() => {
     // Filter change handler - currently not used for data fetching
   }, []);
 

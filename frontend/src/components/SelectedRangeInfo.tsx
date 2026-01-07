@@ -1,4 +1,4 @@
-import { DayAnalysis } from '../types';
+import { DayAnalysis, Holiday, SchoolHoliday } from '../types';
 import './SelectedRangeInfo.css';
 
 interface Props {
@@ -33,7 +33,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     );
 
     // Gruppiere Feiertage nach Land/Region
-    const groupedHolidays: { [key: string]: any[] } = {};
+    const groupedHolidays: { [key: string]: Holiday[] } = {};
 
     holidaysInRange.forEach(holiday => {
         const key = holiday.globalHoliday
@@ -47,7 +47,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     });
 
     // Gruppiere Schulferien nach Region
-    const groupedSchoolHolidays: { [key: string]: any[] } = {};
+    const groupedSchoolHolidays: { [key: string]: SchoolHoliday[] } = {};
 
     schoolHolidaysInRange.forEach(schoolHoliday => {
         const key = schoolHoliday.region.code;
