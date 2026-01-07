@@ -73,8 +73,9 @@ const AdminPanel = ({ onBack }: Props) => {
   const [searchResults, setSearchResults] = useState<Holiday[]>([]);
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
 
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvType] = useState<'country' | 'region' | 'holiday'>('country');
+  // CSV Import variables - commented out until backend endpoint is ready
+  // const [csvFile, setCsvFile] = useState<File | null>(null);
+  // const [csvType] = useState<'country' | 'region' | 'holiday'>('country');
 
   // Mock Regionen - später vom Backend laden
   const mockRegionsByCountry: Record<string, MockRegion[]> = {
