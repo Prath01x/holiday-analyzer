@@ -3,9 +3,11 @@ package com.holidayanalyzer.config;
 import com.holidayanalyzer.model.Country;
 import com.holidayanalyzer.model.Region;
 import com.holidayanalyzer.model.SchoolHoliday;
+import com.holidayanalyzer.model.User;
 import com.holidayanalyzer.repository.CountryRepository;
 import com.holidayanalyzer.repository.RegionRepository;
 import com.holidayanalyzer.repository.SchoolHolidayRepository;
+import com.holidayanalyzer.repository.UserRepository;
 
 import java.time.LocalDate;
 import org.slf4j.Logger;
@@ -21,11 +23,17 @@ public class DataLoader implements CommandLineRunner {
     private final CountryRepository countryRepository;
     private final RegionRepository regionRepository;
     private final SchoolHolidayRepository schoolHolidayRepository;
+    private final UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public DataLoader(CountryRepository countryRepository, RegionRepository regionRepository, SchoolHolidayRepository schoolHolidayRepository) {
+    public DataLoader(CountryRepository countryRepository, RegionRepository regionRepository, 
+                     SchoolHolidayRepository schoolHolidayRepository, UserRepository userRepository,
+                     org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.countryRepository = countryRepository;
         this.regionRepository = regionRepository;
         this.schoolHolidayRepository = schoolHolidayRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,6 +44,9 @@ public class DataLoader implements CommandLineRunner {
         }
 
         log.info("Loading initial data...");
+        
+        // Create default admin user
+        createDefaultAdminUser();
         
         // Load countries
         Country de = createCountry("DE", "Germany", 83240000L);
@@ -1084,5 +1095,17 @@ public class DataLoader implements CommandLineRunner {
         sh.setEndDate(LocalDate.parse(endDate));
         sh.setYear(year);
         schoolHolidayRepository.save(sh);
+    }
+    
+    private void createDefaultAdminUser() {
+        if (userRepository.count() == 0) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setEmail("admin@holidayanalyzer.com");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setRole("ADMIN");
+            userRepository.save(admin);
+            log.info("Default admin user created - username: admin, password: admin123");
+        }
     }
 }
