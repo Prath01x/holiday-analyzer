@@ -19,10 +19,25 @@ interface MockRegion {
   countryCode: string;
 }
 
+interface SchoolHoliday {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  year: number;
+  region: {
+    id: number;
+    code: string;
+    name: string;
+  };
+}
+
 const AdminPanel = ({ onBack }: Props) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [countries, setCountries] = useState<Country[]>([]);
   const [subdivisions, setSubdivisions] = useState<SubdivisionInfo[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [schoolHolidays, setSchoolHolidays] = useState<SchoolHoliday[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -84,6 +99,8 @@ const AdminPanel = ({ onBack }: Props) => {
   useEffect(() => {
     fetchCountries();
     fetchSubdivisions();
+    fetchHolidays();
+    fetchSchoolHolidays();
   }, []);
 
   const fetchCountries = async () => {
@@ -101,6 +118,26 @@ const AdminPanel = ({ onBack }: Props) => {
       setSubdivisions(data);
     } catch (error) {
       console.error('Error fetching subdivisions:', error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/holidays');
+      const data = await response.json();
+      setHolidays(data);
+    } catch (error) {
+      console.error('Error fetching holidays:', error);
+    }
+  };
+
+  const fetchSchoolHolidays = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/school-holidays');
+      const data = await response.json();
+      setSchoolHolidays(data);
+    } catch (error) {
+      console.error('Error fetching school holidays:', error);
     }
   };
 
@@ -154,13 +191,14 @@ const AdminPanel = ({ onBack }: Props) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteCountry = async (_id: number) => {
+  const handleDeleteCountry = async (id: number) => {
     if (!window.confirm('Land wirklich löschen? Alle zugehörigen Regionen und Feiertage gehen verloren (CASCADE).')) {
       return;
     }
 
     try {
       // TODO: Backend Endpoint DELETE /api/admin/countries/{id}
+      console.log('Delete country:', id);
       showMessage('success', 'Land gelöscht');
       fetchCountries();
     } catch (error) {
@@ -289,8 +327,8 @@ const AdminPanel = ({ onBack }: Props) => {
 
   // CSV Import
 
-  const _handleCSVImport = async (_e: React.FormEvent) => {
-    _e.preventDefault();
+  const handleCSVImport = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!csvFile) {
       showMessage('error', 'Bitte CSV-Datei auswählen');
@@ -301,6 +339,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
     try {
       // TODO: Backend CSV Import Endpoints
+      console.log('Import CSV:', csvFile.name);
       showMessage('success', `CSV erfolgreich importiert: ${csvFile.name}`);
       setCsvFile(null);
 
@@ -377,11 +416,11 @@ const AdminPanel = ({ onBack }: Props) => {
                     <div className="stat-label">Regionen</div>
                   </div>
                   <div className="stat-card">
-                    <div className="stat-number">0</div>
+                    <div className="stat-number">{holidays.length}</div>
                     <div className="stat-label">Feiertage</div>
                   </div>
                   <div className="stat-card">
-                    <div className="stat-number">0</div>
+                    <div className="stat-number">{schoolHolidays.length}</div>
                     <div className="stat-label">Ferienperioden</div>
                   </div>
                 </div>

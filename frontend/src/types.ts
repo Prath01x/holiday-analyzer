@@ -39,7 +39,7 @@ export interface SubdivisionInfo {
 export interface DayAnalysis {
   date: string;
   loadPercentage: number;
-  level: 'very_low' | 'low' | 'medium' | 'high' | 'very_high';
+  level: 'very_low' | 'low' | 'medium_low' | 'medium' | 'high' | 'very_high';
   holidays: Holiday[];
 }
 
@@ -60,4 +60,26 @@ export interface UpcomingHoliday {
   isGlobal: boolean;
   affectedPopulation: number;
   regions: string[];
+}
+
+export interface SchoolHoliday {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  year: number;
+  region: {
+    id: number;
+    code: string;
+    name: string;
+    population: number;
+  };
+}
+
+export interface DayAnalysis {
+  date: string;
+  loadPercentage: number;
+  level: 'very_low' | 'low' | 'medium_low' | 'medium' | 'high' | 'very_high';
+  holidays: Holiday[];
+  schoolHolidays?: SchoolHoliday[];
 }

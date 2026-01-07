@@ -154,6 +154,31 @@
     color: #666;
     font-size: 0.9rem;
 }
+.calendar-day.very_low {
+    background-color: #28a745;
+    color: white;
+}
+
+.calendar-day.low {
+    background-color: #a4d65e;
+}
+
+.calendar-day.medium_low {
+    background-color: #ffd966;
+}
+
+.calendar-day.medium {
+    background-color: #ff9f40;
+}
+
+.calendar-day.high {
+    background-color: #ff6b6b;
+}
+
+.calendar-day.very_high {
+    background-color: #dc3545;
+    color: white;
+}
 
 @media (max-width: 768px) {
     .calendar {
