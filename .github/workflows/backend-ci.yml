@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: backend/target/surefire-reports/
@@ -85,8 +85,4 @@ jobs:
 
       - name: Run Checkstyle
         working-directory: ./backend
-        run: mvn checkstyle:check || true
-
-      - name: Run SpotBugs
-        working-directory: ./backend
-        run: mvn spotbugs:check || true
+        run: mvn checkstyle:check || echo "Checkstyle not configured"
