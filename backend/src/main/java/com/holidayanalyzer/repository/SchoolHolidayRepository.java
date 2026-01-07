@@ -20,4 +20,7 @@ public interface SchoolHolidayRepository extends JpaRepository<SchoolHoliday, Lo
 
     @Query("SELECT sh FROM SchoolHoliday sh WHERE sh.region.country.code = :countryCode AND sh.year = :year")
     List<SchoolHoliday> findByCountryCodeAndYear(@Param("countryCode") String countryCode, @Param("year") int year);
+
+    @Query("SELECT sh FROM SchoolHoliday sh JOIN sh.region r JOIN r.country c WHERE sh.year = :year AND c.code = :countryCode")
+    List<SchoolHoliday> findByYearAndCountryCode(@Param("year") int year, @Param("countryCode") String countryCode);
 }

@@ -4,8 +4,10 @@ import com.holidayanalyzer.dto.VacationLoadResponse;
 import com.holidayanalyzer.dto.VacationLoadResponse.WeeklyLoad;
 import com.holidayanalyzer.dto.VacationLoadResponse.DailyLoad;
 import com.holidayanalyzer.dto.VacationLoadResponse.PeakPeriod;
+import com.holidayanalyzer.model.Country;
 import com.holidayanalyzer.model.Holiday;
 import com.holidayanalyzer.model.SchoolHoliday;
+import com.holidayanalyzer.repository.CountryRepository;
 import com.holidayanalyzer.repository.HolidayRepository;
 import com.holidayanalyzer.repository.SchoolHolidayRepository;
 import org.springframework.stereotype.Service;
@@ -21,33 +23,40 @@ public class VacationLoadService {
 
     private final SchoolHolidayRepository schoolHolidayRepository;
     private final HolidayRepository holidayRepository;
+    private final CountryRepository countryRepository;
 
     public VacationLoadService(SchoolHolidayRepository schoolHolidayRepository,
-                               HolidayRepository holidayRepository) {
+                               HolidayRepository holidayRepository,
+                               CountryRepository countryRepository) {
         this.schoolHolidayRepository = schoolHolidayRepository;
         this.holidayRepository = holidayRepository;
+        this.countryRepository = countryRepository;
     }
 
     public VacationLoadResponse calculateVacationLoad(String countryCode, int year) {
+        // Hole das Land mit Population
+        Country country = countryRepository.findByCode(countryCode)
+                .orElseThrow(() -> new IllegalArgumentException("Country not found: " + countryCode));
+
         List<SchoolHoliday> schoolHolidays = schoolHolidayRepository.findByCountryCodeAndYear(countryCode, year);
         List<Holiday> publicHolidays = holidayRepository.findByCountryCodeAndYear(countryCode, year);
 
         Map<LocalDate, DailyLoadData> dailyData = new LinkedHashMap<>();
-        
+
         LocalDate startOfYear = LocalDate.of(year, 1, 1);
         LocalDate endOfYear = LocalDate.of(year, 12, 31);
-        
+
         for (LocalDate date = startOfYear; !date.isAfter(endOfYear); date = date.plusDays(1)) {
             dailyData.put(date, new DailyLoadData());
         }
 
         for (SchoolHoliday sh : schoolHolidays) {
             if (sh.getRegion() == null || sh.getRegion().getPopulation() == null) continue;
-            
+
             long population = sh.getRegion().getPopulation();
             String regionName = sh.getRegion().getName();
             String holidayName = sh.getName();
-            
+
             for (LocalDate date = sh.getStartDate(); !date.isAfter(sh.getEndDate()); date = date.plusDays(1)) {
                 if (dailyData.containsKey(date)) {
                     DailyLoadData data = dailyData.get(date);
@@ -59,7 +68,7 @@ public class VacationLoadService {
 
         for (Holiday h : publicHolidays) {
             if (h.getDate() == null) continue;
-            
+
             long population;
             if (h.getRegion() != null && h.getRegion().getPopulation() != null) {
                 population = h.getRegion().getPopulation();
@@ -68,7 +77,7 @@ public class VacationLoadService {
             } else {
                 continue;
             }
-            
+
             LocalDate date = h.getDate();
             if (dailyData.containsKey(date)) {
                 DailyLoadData data = dailyData.get(date);
@@ -83,6 +92,7 @@ public class VacationLoadService {
 
         VacationLoadResponse response = new VacationLoadResponse();
         response.setYear(year);
+        response.setCountryPopulation(country.getPopulation());
         response.setWeeklyLoads(weeklyLoads);
         response.setDailyLoads(dailyLoads);
         response.setPeakPeriod(peakPeriod);
@@ -97,9 +107,9 @@ public class VacationLoadService {
         for (Map.Entry<LocalDate, DailyLoadData> entry : dailyData.entrySet()) {
             LocalDate date = entry.getKey();
             DailyLoadData data = entry.getValue();
-            
+
             int weekNumber = date.get(weekFields.weekOfWeekBasedYear());
-            
+
             WeeklyLoad week = weekMap.computeIfAbsent(weekNumber, k -> {
                 WeeklyLoad w = new WeeklyLoad();
                 w.setWeekNumber(k);
@@ -109,10 +119,10 @@ public class VacationLoadService {
                 w.setActivePublicHolidays(new ArrayList<>());
                 return w;
             });
-            
+
             week.setSchoolHolidayPopulation(Math.max(week.getSchoolHolidayPopulation(), data.schoolHolidayPopulation));
             week.setPublicHolidayPopulation(week.getPublicHolidayPopulation() + data.publicHolidayPopulation);
-            
+
             for (String detail : data.schoolHolidayDetails) {
                 if (!week.getActiveSchoolHolidays().contains(detail)) {
                     week.getActiveSchoolHolidays().add(detail);

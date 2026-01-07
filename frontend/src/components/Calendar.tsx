@@ -29,17 +29,6 @@ const Calendar = ({ dayAnalyses, startDate, endDate, onDateSelect, loading }: Pr
     return dayAnalyses.find(d => d.date === dateStr);
   };
 
-  const getLoadColor = (level?: DayAnalysis['level']): string => {
-    if (!level) return 'transparent';
-    switch (level) {
-      case 'very_low': return 'var(--color-very-low)';
-      case 'low': return 'var(--color-low)';
-      case 'medium': return 'var(--color-medium)';
-      case 'high': return 'var(--color-high)';
-      case 'very_high': return 'var(--color-very-high)';
-    }
-  };
-
   const handleDayClick = (day: number) => {
     if (!onDateSelect) return;
 
@@ -103,10 +92,9 @@ const Calendar = ({ dayAnalyses, startDate, endDate, onDateSelect, loading }: Pr
     days.push(
         <div
             key={day}
-            className={`calendar-day ${isPast ? 'past' : ''} ${selectionType ? `selected-${selectionType}` : ''}`}
+            className={`calendar-day ${analysis?.level || ''} ${isPast ? 'past' : ''} ${selectionType ? `selected-${selectionType}` : ''}`}
             onClick={() => !isPast && handleDayClick(day)}
             style={{
-              backgroundColor: analysis ? getLoadColor(analysis.level) : 'transparent',
               cursor: isPast ? 'not-allowed' : 'pointer',
             }}
             title={analysis ? `${analysis.loadPercentage}% Auslastung` : undefined}

@@ -64,6 +64,15 @@ const calculateLoad = (affectedPopulation: number, totalPopulation: number): num
   return (affectedPopulation / totalPopulation) * 100;
 };
 
+// Hilfsfunktion: Bestimme Load Level
+const getLoadLevel = (percentage: number): DayAnalysis['level'] => {
+  if (percentage < 5) return 'very_low';      // 0-5%: Dunkelgrün 🟢
+  if (percentage < 20) return 'low';          // 5-20%: Hellgrün 🟢
+  if (percentage < 40) return 'medium_low';   // 20-40%: Gelbgrün 🟡
+  if (percentage < 60) return 'medium';       // 40-60%: Orange 🟠
+  if (percentage < 80) return 'high';         // 60-80%: Hellorange 🔴
+  return 'very_high';                         // 80-100%: Knallrot 🔴
+};
 // Mock: Beste Wochenenden generieren
 const generateMockWeekends = (
     count: number,
@@ -230,7 +239,7 @@ export const api = {
       startDate: string,
       endDate: string,
       country?: string,
-      _subdivision?: string
+      subdivision?: string
   ): Promise<DayAnalysis[]> {
     if (USE_MOCK_DATA) {
       // Generiere Mock-Daten für jeden Tag im Zeitraum
@@ -289,51 +298,100 @@ export const api = {
     const startYear = new Date(startDate).getFullYear();
     const endYear = new Date(endDate).getFullYear();
     const countryCode = country || 'DE';
-    
+
+    // Create a map to store all day analyses
+    const allDaysMap = new Map<string, DayAnalysis>();
+
     // Fetch data for each year separately
-    const allAnalyses: DayAnalysis[] = [];
-    
     for (let year = startYear; year <= endYear; year++) {
       try {
-        // Fetch vacation load for this year
-        const vacationResponse = await fetch(`${API_BASE}/api/vacation-load?countryCode=${countryCode}&year=${year}`);
-        const vacationLoad = await vacationResponse.json();
-        
-        // Fetch holidays for this year
-        const holidaysResponse = await fetch(`${API_BASE}/api/holidays?country=${countryCode}&year=${year}`);
-        const holidays: Holiday[] = await holidaysResponse.json();
-        
-        // Transform VacationLoadResponse to DayAnalysis[] for this year
-        const yearAnalyses: DayAnalysis[] = vacationLoad.dailyLoads.map((day: any) => {
-          const dayHolidays = holidays.filter(h => h.date === day.date);
-          const totalPop = day.totalPopulation || 0;
-          const countryPop = 83240000; // Germany population - should be dynamic
-          const loadPercentage = countryPop > 0 ? Math.round((totalPop / countryPop) * 100) : 0;
-          
-          let level: DayAnalysis['level'];
-          if (loadPercentage < 10) level = 'very_low';
-          else if (loadPercentage < 25) level = 'low';
-          else if (loadPercentage < 50) level = 'medium';
-          else if (loadPercentage < 75) level = 'high';
-          else level = 'very_high';
-          
-          return {
-            date: day.date,
-            loadPercentage,
-            level,
-            holidays: dayHolidays
-          };
-        });
-        
-        allAnalyses.push(...yearAnalyses);
+        // Fetch vacation load data for this year (enthält bereits Schulferien + Feiertage berechnet)
+        const vacationResponse = await fetch(
+            `${API_BASE}/api/vacation-load?countryCode=${countryCode}&year=${year}`
+        );
+        const vacationData = await vacationResponse.json();
+
+        // Get country population from vacation data
+        const countryPopulation = vacationData.countryPopulation || 83240000;
+
+        // Transform dailyLoads to DayAnalysis
+        for (const dailyLoad of vacationData.dailyLoads) {
+          const dateStr = dailyLoad.date;
+          const date = new Date(dateStr);
+
+          // Only include dates in our range
+          if (date >= new Date(startDate) && date <= new Date(endDate)) {
+            const totalPop = dailyLoad.totalPopulation || 0;
+            const loadPercentage = countryPopulation > 0
+                ? Math.round((totalPop / countryPopulation) * 100)
+                : 0;
+
+            allDaysMap.set(dateStr, {
+              date: dateStr,
+              loadPercentage,
+              level: getLoadLevel(loadPercentage),
+              holidays: [],
+              schoolHolidays: []
+            });
+          }
+        }
       } catch (error) {
-        console.error(`Error fetching data for year ${year}:`, error);
+        console.error(`Error fetching vacation load for year ${year}:`, error);
       }
     }
-    
-    // Filter to only include dates in the requested range
-    const analyses = allAnalyses.filter(day => day.date >= startDate && day.date <= endDate);
-    
+
+    // Now fetch holidays AND school holidays from new endpoint
+    try {
+      const params = new URLSearchParams({
+        country: countryCode,
+        startDate,
+        endDate
+      });
+
+      if (subdivision) {
+        params.append('subdivision', subdivision);
+      }
+
+      const analysisResponse = await fetch(`${API_BASE}/api/vacation-analysis?${params}`);
+      const analysisData = await analysisResponse.json();
+
+      // Add holidays to the corresponding days
+      for (const holiday of analysisData.holidays) {
+        const day = allDaysMap.get(holiday.date);
+        if (day) {
+          day.holidays.push(holiday);
+        }
+      }
+
+      // Add school holidays to the corresponding days
+      for (const schoolHoliday of analysisData.schoolHolidays) {
+        const start = new Date(schoolHoliday.startDate);
+        const end = new Date(schoolHoliday.endDate);
+
+        // Add this school holiday to every day in its range
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split('T')[0];
+          const day = allDaysMap.get(dateStr);
+          if (day) {
+            if (!day.schoolHolidays) {
+              day.schoolHolidays = [];
+            }
+            // Avoid duplicates
+            if (!day.schoolHolidays.find(sh => sh.id === schoolHoliday.id)) {
+              day.schoolHolidays.push(schoolHoliday);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching vacation analysis:', error);
+    }
+
+    // Convert map to array and sort by date
+    const analyses = Array.from(allDaysMap.values()).sort((a, b) =>
+        a.date.localeCompare(b.date)
+    );
+
     return analyses;
   },
 
