@@ -8,8 +8,10 @@ import com.holidayanalyzer.repository.CountryRepository;
 import com.holidayanalyzer.repository.RegionRepository;
 import com.holidayanalyzer.repository.SchoolHolidayRepository;
 import com.holidayanalyzer.repository.UserRepository;
+import com.holidayanalyzer.service.HolidayImportService;
 
 import java.time.LocalDate;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -25,15 +27,18 @@ public class DataLoader implements CommandLineRunner {
     private final SchoolHolidayRepository schoolHolidayRepository;
     private final UserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final HolidayImportService holidayImportService;
 
     public DataLoader(CountryRepository countryRepository, RegionRepository regionRepository, 
                      SchoolHolidayRepository schoolHolidayRepository, UserRepository userRepository,
-                     org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+                     org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
+                     HolidayImportService holidayImportService) {
         this.countryRepository = countryRepository;
         this.regionRepository = regionRepository;
         this.schoolHolidayRepository = schoolHolidayRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.holidayImportService = holidayImportService;
     }
 
     @Override
@@ -1068,6 +1073,32 @@ public class DataLoader implements CommandLineRunner {
 
         log.info("Data loading complete: {} countries, {} regions, {} school holidays", 
                 countryRepository.count(), regionRepository.count(), schoolHolidayRepository.count());
+        
+        // Auto-import public holidays for 2026 and 2027
+        autoImportPublicHolidays();
+    }
+    
+    private void autoImportPublicHolidays() {
+        log.info("Starting automatic import of public holidays for 2026 and 2027...");
+        
+        List<String> countries = List.of("DE", "AT", "CH", "FR", "ES", "NL", "IT");
+        int[] years = {2026, 2027};
+        
+        int totalImported = 0;
+        for (int year : years) {
+            log.info("Importing holidays for year {}...", year);
+            for (String countryCode : countries) {
+                try {
+                    int count = holidayImportService.importPublicHolidays(countryCode, year).size();
+                    totalImported += count;
+                    log.info("  {} - {} holidays imported", countryCode, count);
+                } catch (Exception e) {
+                    log.error("  {} - Failed to import holidays: {}", countryCode, e.getMessage());
+                }
+            }
+        }
+        
+        log.info("Auto-import complete: {} total holidays imported for 2026-2027", totalImported);
     }
 
     private Country createCountry(String code, String name, Long population) {

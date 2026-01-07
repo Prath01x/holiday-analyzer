@@ -39,19 +39,20 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
+                // Public endpoints - must be first
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/api/auth/**"
+                    "/swagger-ui.html"
                 ).permitAll()
+                // Auth endpoints - public for login
+                .requestMatchers("/api/auth/**").permitAll()
                 // Allow all GET requests under /api/** (for frontend public data)
-                .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/subdivisions/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/holidays/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/school-holidays/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/analysis/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                // Protect write operations - require authentication
+                .requestMatchers(HttpMethod.POST, "/api/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/**").authenticated()
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )

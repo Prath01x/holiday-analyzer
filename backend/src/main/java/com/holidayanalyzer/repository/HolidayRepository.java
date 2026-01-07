@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface HolidayRepository extends JpaRepository<Holiday, Long> {
 
+    List<Holiday> findByCountryCode(String countryCode);
+    
     List<Holiday> findByCountryCodeAndYear(String countryCode, int year);
 
     @Query("""
