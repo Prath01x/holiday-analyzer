@@ -19,6 +19,18 @@ interface GroupedSchoolHoliday {
     }>;
 }
 
+interface GroupedHoliday {
+    date: string;
+    name: string;
+    regions: Array<{
+        code: string;
+        name: string;
+        population: number;
+        countryCode: string;
+        isGlobal: boolean;
+    }>;
+}
+
 const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     if (!startDate || !endDate) {
         return null;
@@ -44,53 +56,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
         ).values()
     );
 
-    // Gruppiere Schulferien nach Name + Zeitraum
-    const groupedSchoolHolidays: GroupedSchoolHoliday[] = [];
-
-    schoolHolidaysInRange.forEach(sh => {
-        const key = `${sh.name}-${sh.startDate}-${sh.endDate}`;
-        let group = groupedSchoolHolidays.find(
-            g => g.name === sh.name && g.startDate === sh.startDate && g.endDate === sh.endDate
-        );
-
-        if (!group) {
-            group = {
-                name: sh.name,
-                startDate: sh.startDate,
-                endDate: sh.endDate,
-                regions: []
-            };
-            groupedSchoolHolidays.push(group);
-        }
-
-        const regionCode = sh.region.code.split('-')[0];
-        group.regions.push({
-            code: sh.region.code,
-            name: sh.region.name,
-            population: sh.region.population,
-            countryCode: regionCode
-        });
-    });
-
-    // Sortiere Regionen innerhalb jeder Gruppe nach Population (größte zuerst)
-    groupedSchoolHolidays.forEach(group => {
-        group.regions.sort((a, b) => b.population - a.population);
-    });
-
-    // Gruppiere Feiertage nach Land/Region
-    const groupedHolidays: { [key: string]: any[] } = {};
-
-    holidaysInRange.forEach(holiday => {
-        const key = holiday.globalHoliday
-            ? holiday.countryCode
-            : `${holiday.countryCode}-${holiday.region?.code}`;
-
-        if (!groupedHolidays[key]) {
-            groupedHolidays[key] = [];
-        }
-        groupedHolidays[key].push(holiday);
-    });
-
+    // HILFSFUNKTIONEN - VOR DER GRUPPIERUNG!
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('de-DE', {
@@ -156,21 +122,11 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
     };
 
     const getTotalAffectedPopulation = (): number => {
-        // Berechne einzigartige Regionen
+        // Berechne einzigartige Regionen NUR aus Schulferien
         const uniqueRegions = new Map<string, number>();
 
         schoolHolidaysInRange.forEach(sh => {
             uniqueRegions.set(sh.region.code, sh.region.population);
-        });
-
-        Object.values(groupedHolidays).flat().forEach(holiday => {
-            if (holiday.region?.code && holiday.region?.population) {
-                uniqueRegions.set(holiday.region.code, holiday.region.population);
-            } else if (holiday.globalHoliday && holiday.countryCode) {
-                // Für landesweite Feiertage: nutze Landespopulation
-                const countryPop = getCountryPopulation(holiday.countryCode);
-                uniqueRegions.set(holiday.countryCode, countryPop);
-            }
         });
 
         return Array.from(uniqueRegions.values()).reduce((sum, pop) => sum + pop, 0);
@@ -199,6 +155,84 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
             population: getCountryPopulation(mainCountry)
         };
     };
+
+    // JETZT ERST DIE GRUPPIERUNG - NACH DEN FUNKTIONEN!
+    // Gruppiere Schulferien nach Name + Zeitraum
+    const groupedSchoolHolidays: GroupedSchoolHoliday[] = [];
+
+    schoolHolidaysInRange.forEach(sh => {
+        let group = groupedSchoolHolidays.find(
+            g => g.name === sh.name && g.startDate === sh.startDate && g.endDate === sh.endDate
+        );
+
+        if (!group) {
+            group = {
+                name: sh.name,
+                startDate: sh.startDate,
+                endDate: sh.endDate,
+                regions: []
+            };
+            groupedSchoolHolidays.push(group);
+        }
+
+        const regionCode = sh.region.code.split('-')[0];
+        group.regions.push({
+            code: sh.region.code,
+            name: sh.region.name,
+            population: sh.region.population,
+            countryCode: regionCode
+        });
+    });
+
+    // Sortiere Regionen innerhalb jeder Gruppe nach Population (größte zuerst)
+    groupedSchoolHolidays.forEach(group => {
+        group.regions.sort((a, b) => b.population - a.population);
+    });
+
+    // Gruppiere Feiertage nach Datum + Name
+    const groupedHolidaysCompact: GroupedHoliday[] = [];
+
+    holidaysInRange.forEach(holiday => {
+        let group = groupedHolidaysCompact.find(
+            g => g.date === holiday.date && g.name === holiday.localName
+        );
+
+        if (!group) {
+            group = {
+                date: holiday.date,
+                name: holiday.localName,
+                regions: []
+            };
+            groupedHolidaysCompact.push(group);
+        }
+
+        const countryCode = holiday.countryCode;
+
+        if (holiday.globalHoliday) {
+            // Bundesweiter Feiertag
+            group.regions.push({
+                code: countryCode,
+                name: getCountryName(countryCode),
+                population: getCountryPopulation(countryCode),
+                countryCode: countryCode,
+                isGlobal: true
+            });
+        } else if (holiday.region) {
+            // Regionaler Feiertag
+            group.regions.push({
+                code: holiday.region.code,
+                name: holiday.region.name,
+                population: getRegionPopulation(holiday.region),
+                countryCode: countryCode,
+                isGlobal: false
+            });
+        }
+    });
+
+    // Sortiere Regionen innerhalb jeder Gruppe nach Population
+    groupedHolidaysCompact.forEach(group => {
+        group.regions.sort((a, b) => b.population - a.population);
+    });
 
     const mainCountry = getMainCountry();
     const totalAffectedPop = getTotalAffectedPopulation();
@@ -236,35 +270,35 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
                 </div>
             </div>
 
-            {/* FEIERTAGE SECTION */}
+            {/* FEIERTAGE SECTION - GRUPPIERT */}
             {holidaysInRange.length > 0 && (
                 <div className="holidays-section">
                     <h4 className="section-title">Feiertage</h4>
                     <div className="holidays-list-compact">
-                        {Object.entries(groupedHolidays).map(([key, holidays]) => {
-                            const firstHoliday = holidays[0];
-                            const isGlobal = firstHoliday.globalHoliday;
-                            const countryCode = firstHoliday.countryCode;
-                            const population = isGlobal
-                                ? getCountryPopulation(countryCode)
-                                : getRegionPopulation(firstHoliday.region);
+                        {groupedHolidaysCompact.map((group, index) => {
+                            const totalPopulation = group.regions.reduce((sum, r) => sum + r.population, 0);
 
                             return (
-                                <div key={key} className="holiday-card-compact">
-                                    <div className="holiday-card-header">
-                                        <span className="country-flag-small">{countryCode}</span>
-                                        <span className="region-name-compact">
-                                            {isGlobal ? getCountryName(countryCode) : firstHoliday.region?.name || firstHoliday.region?.code}
-                                        </span>
-                                        <span className="population-badge-small">
-                                            {formatPopulation(population)}
-                                        </span>
+                                <div key={index} className="holiday-group-compact">
+                                    <div className="holiday-header-compact">
+                                        <div className="holiday-title">
+                                            <span className="holiday-name-bold">{group.name}</span>
+                                            <span className="holiday-dates-compact">
+                                                {formatDateShort(group.date)}
+                                            </span>
+                                        </div>
+                                        <div className="total-population-badge holiday-badge">
+                                            {formatPopulation(totalPopulation)} gesamt
+                                        </div>
                                     </div>
-                                    <div className="holidays-content-compact">
-                                        {holidays.map((holiday, index) => (
-                                            <div key={`${holiday.date}-${index}`} className="holiday-item-compact">
-                                                <span className="holiday-date-compact">{formatDateShort(holiday.date)}</span>
-                                                <span className="holiday-name-compact">{holiday.localName}</span>
+                                    <div className="regions-grid-compact">
+                                        {group.regions.map((region) => (
+                                            <div key={region.code} className="region-item-compact">
+                                                <span className="country-flag-tiny">{region.countryCode}</span>
+                                                <span className="region-name-tiny">
+                                                    {region.isGlobal ? `${region.name} (landesweit)` : region.name}
+                                                </span>
+                                                <span className="region-population-tiny">{formatPopulation(region.population)}</span>
                                             </div>
                                         ))}
                                     </div>

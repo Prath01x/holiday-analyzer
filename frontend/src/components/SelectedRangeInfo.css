@@ -261,6 +261,33 @@
     }
 }
 
+holiday-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.holiday-group-compact {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid #f093fb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.holiday-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.holiday-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 @media (max-width: 640px) {
     .range-stats-top {
         grid-template-columns: 1fr;

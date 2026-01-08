@@ -15,11 +15,49 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [availableRegions, setAvailableRegions] = useState<SubdivisionInfo[]>([]);
+  const [countriesWithVacations, setCountriesWithVacations] = useState<Country[]>([]);
 
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [calendarData, setCalendarData] = useState<DayAnalysis[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Lade Länder mit Feriendaten
+  useEffect(() => {
+    const loadCountriesWithVacations = async () => {
+      try {
+        // Hole alle Schulferien
+        const response = await fetch('http://localhost:8080/api/school-holidays');
+        const schoolHolidays = await response.json();
+
+        // Ermittle einzigartige Ländercodes aus den Schulferien
+        const countryCodes = new Set<string>();
+        schoolHolidays.forEach((sh: any) => {
+          if (sh.region?.code) {
+            const countryCode = sh.region.code.split('-')[0];
+            countryCodes.add(countryCode);
+          }
+        });
+
+        // Filtere countries nach Ländern mit Schulferien
+        const filteredCountries = countries.filter(c => countryCodes.has(c.code));
+        setCountriesWithVacations(filteredCountries);
+
+        // Setze erstes Land als Standard wenn noch keins gewählt
+        if (!selectedCountry && filteredCountries.length > 0) {
+          setSelectedCountry(filteredCountries[0].code);
+        }
+      } catch (error) {
+        console.error('Error loading countries with vacations:', error);
+        // Fallback: Zeige alle Länder
+        setCountriesWithVacations(countries);
+      }
+    };
+
+    if (countries.length > 0) {
+      loadCountriesWithVacations();
+    }
+  }, [countries]);
 
   // Aktualisiere verfügbare Regionen wenn Land gewählt wird
   useEffect(() => {
@@ -43,6 +81,8 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
   // Lade Kalender-Daten für das gesamte Jahr
   useEffect(() => {
     const loadCalendarData = async () => {
+      if (!selectedCountry) return;
+
       setLoading(true);
       try {
         // Load data for current year and next year to cover all possible date selections
@@ -53,7 +93,7 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
         const data = await api.analyzeDateRange(
             startDate,
             endDate,
-            selectedCountry || undefined,
+            selectedCountry,
             selectedRegion || undefined
         );
         setCalendarData(data);
@@ -76,8 +116,6 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
   };
 
   const handleReset = () => {
-    setSelectedCountry('');
-    setSelectedRegion('');
     setStartDate('');
     setEndDate('');
   };
@@ -117,8 +155,7 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
                 value={selectedCountry}
                 onChange={(e) => handleCountryChange(e.target.value)}
             >
-              <option value="">Alle Länder</option>
-              {countries.map(country => (
+              {countriesWithVacations.map(country => (
                   <option key={country.id} value={country.code}>
                     {country.name}
                   </option>
