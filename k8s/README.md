@@ -6,7 +6,7 @@
 - GKE Cluster erstellt
 - Docker Images in Google Container Registry (GCR)
 
-## Deployment Reihenfolge
+## Deployment Reihenfolge (nachdem Images gebaut & gepusht wurden)
 ```bash
 # 1. Namespace erstellen
 kubectl apply -f namespace.yaml
@@ -15,8 +15,8 @@ kubectl apply -f namespace.yaml
 kubectl apply -f configmap.yaml
 kubectl apply -f secrets.yaml
 
-# 3. PostgreSQL
-kubectl apply -f postgres/
+# 3. Cloud SQL Proxy Secrets (falls geändert)
+kubectl apply -f secrets.yaml   # enthält CLOUD_SQL_CONNECTION_NAME etc.
 
 # 4. Backend
 kubectl apply -f backend/
@@ -25,20 +25,28 @@ kubectl apply -f backend/
 kubectl apply -f frontend/
 
 # 6. Ingress (optional)
-kubectl apply -f ingress.yaml
+kubectl apply -f ingress.yaml //we dont have domain yet
+
+# 7. Aktuellen Stand prüfen
+kubectl get pods -n holiday-analyzer
+kubectl get svc -n holiday-analyzer
 ```
 
-## Status prüfen
+## Container Images bauen & pushen
 ```bash
-# Alle Pods anzeigen
-kubectl get pods -n holiday-analyzer
+# Backend
+docker build -t gcr.io/august-impact-479818-r1/holiday-backend:latest -f backend/Dockerfile backend
+docker push gcr.io/august-impact-479818-r1/holiday-backend:latest
 
-# Services anzeigen
-kubectl get svc -n holiday-analyzer
+# Frontend
+docker build -t gcr.io/august-impact-479818-r1/holiday-frontend:latest -f frontend/Dockerfile frontend
+docker push gcr.io/august-impact-479818-r1/holiday-frontend:latest
 
-# Logs anzeigen
-kubectl logs -f deployment/backend -n holiday-analyzer
-kubectl logs -f deployment/frontend -n holiday-analyzer
+# Rollout der neuen Images
+kubectl rollout restart deploy/backend -n holiday-analyzer
+kubectl rollout restart deploy/frontend -n holiday-analyzer
+kubectl rollout status deploy/backend -n holiday-analyzer
+kubectl rollout status deploy/frontend -n holiday-analyzer
 ```
 
 ## Wichtige Hinweise
@@ -46,3 +54,4 @@ kubectl logs -f deployment/frontend -n holiday-analyzer
 - **PROJECT_ID** in Deployments durch echte GCP Project ID ersetzen
 - **Secrets** vor Production-Deployment ändern!
 - **Domain** in ingress.yaml anpassen
+- Nach jedem Code- oder Manifest-Update: `git add`, `git commit -m "<message>"`, `git push` ausführen, damit die Änderungen versioniert bleiben.

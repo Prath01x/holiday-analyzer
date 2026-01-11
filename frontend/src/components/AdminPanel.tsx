@@ -124,7 +124,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchHolidays = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/holidays');
+      const response = await fetch('/api/holidays');
       const data = await response.json();
       setHolidays(data);
     } catch (error) {
@@ -134,7 +134,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchSchoolHolidays = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/school-holidays');
+      const response = await fetch('/api/school-holidays');
       const data = await response.json();
       setSchoolHolidays(data);
     } catch (error) {

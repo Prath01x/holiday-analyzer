@@ -27,7 +27,7 @@ const VacationPlanner = ({ countries, subdivisions, onFilterChange }: Props) => 
     const loadCountriesWithVacations = async () => {
       try {
         // Hole alle Schulferien
-        const response = await fetch('http://localhost:8080/api/school-holidays');
+        const response = await fetch('/api/school-holidays');
         const schoolHolidays = await response.json();
 
         // Ermittle einzigartige Ländercodes aus den Schulferien

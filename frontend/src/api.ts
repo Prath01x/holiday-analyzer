@@ -2,7 +2,10 @@ import { Country, Holiday, SubdivisionInfo, DayAnalysis, WeekendAnalysis, Upcomi
 
 // Toggle für Mock-Daten
 const USE_MOCK_DATA = false;
-const API_BASE = 'http://localhost:8080';
+
+// Always use relative root. Dev server proxies /api to localhost:8080, and
+// the deployed nginx serves /api via an internal upstream.
+const API_BASE = '';
 
 // Mock-Daten Generatoren
 const generateMockCountries = (): Country[] => [

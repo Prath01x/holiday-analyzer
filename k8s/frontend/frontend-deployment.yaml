@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/PROJECT_ID/holiday-frontend:latest
+        image: gcr.io/august-impact-479818-r1/holiday-frontend:latest
         ports:
         - containerPort: 80
         resources:
@@ -25,6 +25,12 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
+        env:
+          - name: VITE_API_BASE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: holiday-analyzer-config
+                key: VITE_API_BASE_URL
         livenessProbe:
           httpGet:
             path: /
