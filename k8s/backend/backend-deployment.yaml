@@ -13,6 +13,7 @@ spec:
       labels:
         app: backend
     spec:
+      serviceAccountName: backend-sa
       containers:
       - name: backend
         image: gcr.io/august-impact-479818-r1/holiday-backend:latest
