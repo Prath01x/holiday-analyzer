@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Country, Holiday, SubdivisionInfo } from '../types';
+import { Country, SubdivisionInfo } from '../types';
 import AdminHeader from './AdminHeader';
 import './AdminPanel.css';
 
@@ -36,11 +36,18 @@ interface RegionFromAPI {
   };
 }
 
+interface HolidayFromAPI {
+  id: number;
+  localName: string;
+  date: string;
+  countryCode: string;
+}
+
 const AdminPanel = ({ onBack }: Props) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [countries, setCountries] = useState<Country[]>([]);
   const [subdivisions, setSubdivisions] = useState<SubdivisionInfo[]>([]);
-  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [holidays, setHolidays] = useState<HolidayFromAPI[]>([]);
   const [schoolHolidays, setSchoolHolidays] = useState<SchoolHoliday[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -60,7 +67,6 @@ const AdminPanel = ({ onBack }: Props) => {
   });
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
 
-  // Holiday Form State
   const [holidayOrVacation, setHolidayOrVacation] = useState<HolidayOrVacation>('holiday');
   const [scope, setScope] = useState<Scope>('nationwide');
   const [holidayForm, setHolidayForm] = useState({
@@ -73,9 +79,6 @@ const AdminPanel = ({ onBack }: Props) => {
     regionCodes: [] as string[],
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Holiday[]>([]);
-  const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
   const [regionsByCountry, setRegionsByCountry] = useState<Record<string, SubdivisionInfo[]>>({});
 
   useEffect(() => {
@@ -95,8 +98,6 @@ const AdminPanel = ({ onBack }: Props) => {
       }
 
       const allRegions: RegionFromAPI[] = await response.json();
-
-      console.log('Geladene Regionen:', allRegions.length);
 
       const grouped: Record<string, SubdivisionInfo[]> = {};
 
@@ -119,7 +120,6 @@ const AdminPanel = ({ onBack }: Props) => {
         });
       });
 
-      console.log('Deutsche Regionen:', grouped['DE']?.length);
       setRegionsByCountry(grouped);
     } catch (error) {
       console.error('Error loading regions:', error);
@@ -146,7 +146,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchHolidays = async () => {
     try {
-      const response = await fetch('/api/holidays');
+      const response = await fetch('http://localhost:8080/api/holidays');
       const data = await response.json();
       setHolidays(data);
     } catch (error) {
@@ -156,7 +156,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchSchoolHolidays = async () => {
     try {
-      const response = await fetch('/api/school-holidays');
+      const response = await fetch('http://localhost:8080/api/school-holidays');
       const data = await response.json();
       setSchoolHolidays(data);
     } catch (error) {
@@ -443,52 +443,6 @@ const AdminPanel = ({ onBack }: Props) => {
     }
   };
 
-  const handleSearchHolidays = async () => {
-    if (!searchTerm.trim()) {
-      showMessage('error', 'Bitte Suchbegriff eingeben');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // TODO: Implement actual search API call
-      setSearchResults([]);
-      showMessage('success', 'Suche durchgeführt');
-    } catch (error) {
-      showMessage('error', 'Fehler bei der Suche');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditHoliday = (holiday: Holiday) => {
-    setEditingHoliday(holiday);
-    setHolidayForm({
-      name_de: holiday.localName,
-      name_en: holiday.englishName || holiday.localName,
-      date: holiday.date,
-      startDate: holiday.date,
-      endDate: holiday.date,
-      countryCode: holiday.countryCode,
-      regionCodes: holiday.region?.code ? [holiday.region.code] : [],
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteHoliday = async (holidayId: number) => {
-    if (!window.confirm('Feiertag wirklich löschen?')) {
-      return;
-    }
-
-    try {
-      // TODO: Implement actual delete API call
-      showMessage('success', 'Gelöscht');
-      setSearchResults(searchResults.filter(h => h.id !== holidayId));
-    } catch (error) {
-      showMessage('error', 'Fehler beim Löschen');
-    }
-  };
-
   const resetHolidayForm = () => {
     setHolidayForm({
       name_de: '',
@@ -501,7 +455,6 @@ const AdminPanel = ({ onBack }: Props) => {
     });
     setHolidayOrVacation('holiday');
     setScope('nationwide');
-    setEditingHoliday(null);
   };
 
   const toggleRegionSelection = (code: string) => {
@@ -766,7 +719,7 @@ const AdminPanel = ({ onBack }: Props) => {
                 <h2>Feiertage & Ferien verwalten</h2>
 
                 <div className="form-section">
-                  <h3>{editingHoliday ? 'Bearbeiten' : 'Neu anlegen'}</h3>
+                  <h3>Neu anlegen</h3>
 
                   <div className="toggle-row">
                     <div className="toggle-group">
@@ -909,54 +862,8 @@ const AdminPanel = ({ onBack }: Props) => {
                       <button type="submit" className="btn-primary" disabled={loading}>
                         {loading ? 'Speichert...' : 'Speichern'}
                       </button>
-                      {editingHoliday && (
-                          <button type="button" className="btn-secondary" onClick={resetHolidayForm}>
-                            Abbrechen
-                          </button>
-                      )}
                     </div>
                   </form>
-                </div>
-
-                <div className="form-section">
-                  <h3>Suchen</h3>
-                  <div className="search-form">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Name oder Land..."
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearchHolidays()}
-                    />
-                    <button onClick={handleSearchHolidays} className="btn-primary" disabled={loading}>
-                      Suchen
-                    </button>
-                  </div>
-
-                  {searchResults.length > 0 && (
-                      <div className="search-results">
-                        {searchResults.map(holiday => (
-                            <div key={holiday.id} className="result-row">
-                              <div className="result-main">
-                                <span className="result-name">{holiday.localName}</span>
-                                <span className="result-date">{holiday.date}</span>
-                                <span className="result-country">{holiday.countryCode}</span>
-                                {holiday.region?.code && (
-                                    <span className="result-region">{holiday.region.code}</span>
-                                )}
-                              </div>
-                              <div className="result-actions">
-                                <button className="btn-edit" onClick={() => handleEditHoliday(holiday)}>
-                                  Bearbeiten
-                                </button>
-                                <button className="btn-delete" onClick={() => handleDeleteHoliday(holiday.id)}>
-                                  Löschen
-                                </button>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                  )}
                 </div>
               </div>
           )}
