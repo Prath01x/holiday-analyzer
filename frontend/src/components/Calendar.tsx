@@ -10,6 +10,8 @@ interface Props {
   loading?: boolean;
 }
 
+
+
 const Calendar = ({ dayAnalyses, startDate, endDate, onDateSelect, loading }: Props) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -24,8 +26,15 @@ const Calendar = ({ dayAnalyses, startDate, endDate, onDateSelect, loading }: Pr
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
+  const formatDateToString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const getAnalysisForDate = (date: Date): DayAnalysis | undefined => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);  // ← Timezone-sicher
     return dayAnalyses.find(d => d.date === dateStr);
   };
 
@@ -39,18 +48,18 @@ const Calendar = ({ dayAnalyses, startDate, endDate, onDateSelect, loading }: Pr
     today.setHours(0, 0, 0, 0);
     if (clickedDate < today) return;
 
-    const dateStr = clickedDate.toISOString().split('T')[0];
+    const dateStr = formatDateToString(clickedDate);  // ← Timezone-sicher
     onDateSelect(dateStr);
   };
 
   const isDateInRange = (date: Date): boolean => {
     if (!startDate || !endDate) return false;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
     return dateStr >= startDate && dateStr <= endDate;
   };
 
   const isDateSelected = (date: Date): 'start' | 'end' | 'middle' | null => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToString(date);
     if (dateStr === startDate) return 'start';
     if (dateStr === endDate) return 'end';
     if (isDateInRange(date)) return 'middle';

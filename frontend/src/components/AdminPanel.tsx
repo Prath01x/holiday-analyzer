@@ -12,13 +12,6 @@ type AdminTab = 'overview' | 'countries' | 'holidays';
 type HolidayOrVacation = 'holiday' | 'vacation';
 type Scope = 'nationwide' | 'regional';
 
-interface MockRegion {
-  code: string;
-  name_de: string;
-  name_en: string;
-  countryCode: string;
-}
-
 interface SchoolHoliday {
   id: number;
   name: string;
@@ -27,6 +20,17 @@ interface SchoolHoliday {
   year: number;
   region: {
     id: number;
+    code: string;
+    name: string;
+  };
+}
+
+interface RegionFromAPI {
+  id: number;
+  code: string;
+  name: string;
+  population: number;
+  country?: {
     code: string;
     name: string;
   };
@@ -62,9 +66,9 @@ const AdminPanel = ({ onBack }: Props) => {
   const [holidayForm, setHolidayForm] = useState({
     name_de: '',
     name_en: '',
-    date: '', // Nur für Feiertag
-    startDate: '', // Für Ferien
-    endDate: '', // Für Ferien
+    date: '',
+    startDate: '',
+    endDate: '',
     countryCode: '',
     regionCodes: [] as string[],
   });
@@ -72,37 +76,55 @@ const AdminPanel = ({ onBack }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Holiday[]>([]);
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
-
-  // CSV Import variables - commented out until backend endpoint is ready
-  // const [csvFile, setCsvFile] = useState<File | null>(null);
-  // const [csvType] = useState<'country' | 'region' | 'holiday'>('country');
-
-  // Mock Regionen - später vom Backend laden
-  const mockRegionsByCountry: Record<string, MockRegion[]> = {
-    'DE': [
-      { code: 'DE-BW', name_de: 'Baden-Württemberg', name_en: 'Baden-Württemberg', countryCode: 'DE' },
-      { code: 'DE-BY', name_de: 'Bayern', name_en: 'Bavaria', countryCode: 'DE' },
-      { code: 'DE-NW', name_de: 'Nordrhein-Westfalen', name_en: 'North Rhine-Westphalia', countryCode: 'DE' },
-      { code: 'DE-HE', name_de: 'Hessen', name_en: 'Hesse', countryCode: 'DE' },
-      { code: 'DE-SN', name_de: 'Sachsen', name_en: 'Saxony', countryCode: 'DE' },
-    ],
-    'AT': [
-      { code: 'AT-1', name_de: 'Burgenland', name_en: 'Burgenland', countryCode: 'AT' },
-      { code: 'AT-2', name_de: 'Kärnten', name_en: 'Carinthia', countryCode: 'AT' },
-      { code: 'AT-9', name_de: 'Wien', name_en: 'Vienna', countryCode: 'AT' },
-    ],
-    'FR': [
-      { code: 'FR-IDF', name_de: 'Île-de-France', name_en: 'Île-de-France', countryCode: 'FR' },
-      { code: 'FR-PAC', name_de: 'Provence-Alpes-Côte d\'Azur', name_en: 'Provence-Alpes-Côte d\'Azur', countryCode: 'FR' },
-    ],
-  };
+  const [regionsByCountry, setRegionsByCountry] = useState<Record<string, SubdivisionInfo[]>>({});
 
   useEffect(() => {
     fetchCountries();
     fetchSubdivisions();
     fetchHolidays();
     fetchSchoolHolidays();
+    loadRegionsGrouped();
   }, []);
+
+  const loadRegionsGrouped = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/regions');
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const allRegions: RegionFromAPI[] = await response.json();
+
+      console.log('Geladene Regionen:', allRegions.length);
+
+      const grouped: Record<string, SubdivisionInfo[]> = {};
+
+      allRegions.forEach((region) => {
+        const countryCode = region.country?.code;
+
+        if (!countryCode) {
+          return;
+        }
+
+        if (!grouped[countryCode]) {
+          grouped[countryCode] = [];
+        }
+
+        grouped[countryCode].push({
+          code: region.code,
+          name: region.name,
+          countryCode: countryCode,
+          population: region.population
+        });
+      });
+
+      console.log('Deutsche Regionen:', grouped['DE']?.length);
+      setRegionsByCountry(grouped);
+    } catch (error) {
+      console.error('Error loading regions:', error);
+    }
+  };
 
   const fetchCountries = async () => {
     try {
@@ -147,35 +169,66 @@ const AdminPanel = ({ onBack }: Props) => {
     setTimeout(() => setMessage(null), 5000);
   };
 
-  // Country/Region Management
+  // ==================== COUNTRY HANDLERS ====================
 
   const handleCountrySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // TODO: Backend Endpoint POST /api/admin/countries
-      showMessage('success', `Land ${countryForm.name_de} erfolgreich ${editingCountry ? 'aktualisiert' : 'erstellt'}`);
+      const token = localStorage.getItem('token');
+
+      if (editingCountry) {
+        const params = new URLSearchParams({
+          name: countryForm.name_de,
+          nameEn: countryForm.name_en,
+          population: countryForm.population.toString()
+        });
+
+        const response = await fetch(
+            `http://localhost:8080/api/admin/countries/${editingCountry.id}?${params}`,
+            {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${token}` }
+            }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Fehler beim Aktualisieren');
+        }
+
+        showMessage('success', `Land ${countryForm.name_de} erfolgreich aktualisiert`);
+      } else {
+        const params = new URLSearchParams({
+          code: countryForm.code,
+          name: countryForm.name_de,
+          nameEn: countryForm.name_en,
+          population: countryForm.population.toString()
+        });
+
+        const response = await fetch(
+            `http://localhost:8080/api/admin/countries?${params}`,
+            {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Fehler beim Erstellen');
+        }
+
+        showMessage('success', `Land ${countryForm.name_de} erfolgreich erstellt`);
+      }
+
       setCountryForm({ code: '', name_de: '', name_en: '', population: 0 });
       setEditingCountry(null);
       fetchCountries();
     } catch (error) {
-      showMessage('error', 'Fehler beim Speichern des Landes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // TODO: Backend Endpoint POST /api/admin/subdivisions
-      showMessage('success', `Region ${regionForm.name_de} erfolgreich erstellt`);
-      setRegionForm({ countryCode: '', code: '', name_de: '', name_en: '', population: 0 });
-    } catch (error) {
-      showMessage('error', 'Fehler beim Erstellen der Region');
+      showMessage('error', 'Fehler: ' + error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -193,73 +246,198 @@ const AdminPanel = ({ onBack }: Props) => {
   };
 
   const handleDeleteCountry = async (id: number) => {
-    if (!window.confirm('Land wirklich löschen? Alle zugehörigen Regionen und Feiertage gehen verloren (CASCADE).')) {
+    if (!window.confirm('Land wirklich löschen? Alle zugehörigen Regionen und Feiertage werden auch gelöscht!')) {
       return;
     }
 
     try {
-      // TODO: Backend Endpoint DELETE /api/admin/countries/{id}
-      console.log('Delete country:', id);
-      showMessage('success', 'Land gelöscht');
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(
+          `http://localhost:8080/api/admin/countries/${id}`,
+          {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Fehler beim Löschen');
+      }
+
+      showMessage('success', 'Land erfolgreich gelöscht');
       fetchCountries();
+      fetchSubdivisions();
+      loadRegionsGrouped();
     } catch (error) {
-      showMessage('error', 'Fehler beim Löschen');
+      showMessage('error', 'Fehler: ' + error);
+      console.error(error);
     }
   };
 
-  // Holiday Management
+  // ==================== REGION HANDLERS ====================
+
+  const handleRegionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const params = new URLSearchParams({
+        code: regionForm.code,
+        name: regionForm.name_de,
+        countryCode: regionForm.countryCode,
+        population: regionForm.population.toString()
+      });
+
+      const response = await fetch(
+          `http://localhost:8080/api/admin/regions?${params}`,
+          {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Fehler beim Erstellen');
+      }
+
+      showMessage('success', `Region ${regionForm.name_de} erfolgreich erstellt`);
+      setRegionForm({ countryCode: '', code: '', name_de: '', name_en: '', population: 0 });
+      fetchSubdivisions();
+      loadRegionsGrouped();
+    } catch (error) {
+      showMessage('error', 'Fehler: ' + error);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================== HOLIDAY HANDLERS ====================
 
   const handleHolidaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const holidaysToCreate = [];
-
-      // Bestimme Start- und Enddatum
       let startDate: string;
       let endDate: string;
 
       if (holidayOrVacation === 'holiday') {
-        // Feiertag: start = end
         startDate = holidayForm.date;
         endDate = holidayForm.date;
       } else {
-        // Ferien: start != end
         startDate = holidayForm.startDate;
         endDate = holidayForm.endDate;
       }
 
-      if (scope === 'nationwide') {
-        // Landesweit: Ein Eintrag, subdivision_code = NULL
-        holidaysToCreate.push({
-          start_date: startDate,
-          end_date: endDate,
-          name_de: holidayForm.name_de,
-          name_en: holidayForm.name_en,
-          country_code: holidayForm.countryCode,
-          subdivision_code: null,
-          year: new Date(startDate).getFullYear(),
-        });
-      } else {
-        // Regional: Ein Eintrag pro ausgewählter Region
-        for (const regionCode of holidayForm.regionCodes) {
-          holidaysToCreate.push({
-            start_date: startDate,
-            end_date: endDate,
-            name_de: holidayForm.name_de,
-            name_en: holidayForm.name_en,
-            country_code: holidayForm.countryCode,
-            subdivision_code: regionCode,
-            year: new Date(startDate).getFullYear(),
+      const year = new Date(startDate).getFullYear();
+      const token = localStorage.getItem('token');
+
+      if (holidayOrVacation === 'vacation') {
+        const regionCodes = scope === 'nationwide'
+            ? getAvailableRegions().map(r => r.code)
+            : holidayForm.regionCodes;
+
+        if (regionCodes.length === 0) {
+          showMessage('error', 'Keine Regionen ausgewählt!');
+          setLoading(false);
+          return;
+        }
+
+        for (const regionCode of regionCodes) {
+          const queryParams = new URLSearchParams({
+            name: holidayForm.name_de,
+            regionCode: regionCode,
+            startDate: startDate,
+            endDate: endDate,
+            year: year.toString()
           });
+
+          const response = await fetch(
+              `http://localhost:8080/api/admin/school-holidays?${queryParams}`,
+              {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+              }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fehler beim Speichern: ${response.status} - ${errorText}`);
+          }
+        }
+
+        showMessage('success', `${regionCodes.length} Schulferien erfolgreich gespeichert`);
+      } else {
+        if (scope === 'nationwide') {
+          const queryParams = new URLSearchParams({
+            name: holidayForm.name_de,
+            countryCode: holidayForm.countryCode,
+            date: holidayForm.date,
+            englishName: holidayForm.name_en
+          });
+
+          const response = await fetch(
+              `http://localhost:8080/api/admin/holidays?${queryParams}`,
+              {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+              }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fehler: ${response.status} - ${errorText}`);
+          }
+
+          showMessage('success', 'Feiertag erfolgreich gespeichert');
+        } else {
+          const regionCodes = holidayForm.regionCodes;
+
+          if (regionCodes.length === 0) {
+            showMessage('error', 'Keine Regionen ausgewählt!');
+            setLoading(false);
+            return;
+          }
+
+          for (const regionCode of regionCodes) {
+            const queryParams = new URLSearchParams({
+              name: holidayForm.name_de,
+              countryCode: holidayForm.countryCode,
+              date: holidayForm.date,
+              regionCode: regionCode,
+              englishName: holidayForm.name_en
+            });
+
+            const response = await fetch(
+                `http://localhost:8080/api/admin/holidays?${queryParams}`,
+                {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${token}` }
+                }
+            );
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Fehler: ${response.status} - ${errorText}`);
+            }
+          }
+
+          showMessage('success', `${regionCodes.length} regionale Feiertage erfolgreich gespeichert`);
         }
       }
 
-      showMessage('success', `${holidaysToCreate.length} Eintrag/Einträge erfolgreich gespeichert`);
       resetHolidayForm();
+      fetchHolidays();
+      fetchSchoolHolidays();
     } catch (error) {
-      showMessage('error', 'Fehler beim Speichern');
+      showMessage('error', 'Fehler beim Speichern: ' + error);
+      console.error('Fehler Details:', error);
     } finally {
       setLoading(false);
     }
@@ -273,7 +451,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
     setLoading(true);
     try {
-      // TODO: Backend Endpoint GET /api/admin/holidays/search?term={searchTerm}
+      // TODO: Implement actual search API call
       setSearchResults([]);
       showMessage('success', 'Suche durchgeführt');
     } catch (error) {
@@ -303,7 +481,7 @@ const AdminPanel = ({ onBack }: Props) => {
     }
 
     try {
-      // TODO: Backend Endpoint DELETE /api/admin/holidays/{id}
+      // TODO: Implement actual delete API call
       showMessage('success', 'Gelöscht');
       setSearchResults(searchResults.filter(h => h.id !== holidayId));
     } catch (error) {
@@ -326,31 +504,6 @@ const AdminPanel = ({ onBack }: Props) => {
     setEditingHoliday(null);
   };
 
-  // CSV Import - TODO: Implement when backend endpoint is ready
-  // Commented out to avoid ESLint unused variable warning
-  // const handleCSVImport = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!csvFile) {
-  //     showMessage('error', 'Bitte CSV-Datei auswählen');
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     console.log('Import CSV:', csvFile.name);
-  //     showMessage('success', `CSV erfolgreich importiert: ${csvFile.name}`);
-  //     setCsvFile(null);
-  //     if (csvType === 'country') {
-  //       fetchCountries();
-  //     }
-  //   } catch (error) {
-  //     showMessage('error', 'Fehler beim CSV-Import');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Selection Helpers
-
   const toggleRegionSelection = (code: string) => {
     setHolidayForm(prev => ({
       ...prev,
@@ -360,9 +513,9 @@ const AdminPanel = ({ onBack }: Props) => {
     }));
   };
 
-  const getAvailableRegions = (): MockRegion[] => {
+  const getAvailableRegions = (): SubdivisionInfo[] => {
     if (!holidayForm.countryCode) return [];
-    return mockRegionsByCountry[holidayForm.countryCode] || [];
+    return regionsByCountry[holidayForm.countryCode] || [];
   };
 
   return (
@@ -397,7 +550,6 @@ const AdminPanel = ({ onBack }: Props) => {
         </div>
 
         <div className="admin-content">
-          {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
               <div className="admin-section">
                 <h2>Datenübersicht</h2>
@@ -440,7 +592,6 @@ const AdminPanel = ({ onBack }: Props) => {
               </div>
           )}
 
-          {/* COUNTRIES TAB */}
           {activeTab === 'countries' && (
               <div className="admin-section compact">
                 <h2>Länder & Regionen verwalten</h2>
@@ -610,7 +761,6 @@ const AdminPanel = ({ onBack }: Props) => {
               </div>
           )}
 
-          {/* HOLIDAYS TAB */}
           {activeTab === 'holidays' && (
               <div className="admin-section compact">
                 <h2>Feiertage & Ferien verwalten</h2>
@@ -748,7 +898,7 @@ const AdminPanel = ({ onBack }: Props) => {
                                       checked={holidayForm.regionCodes.includes(region.code)}
                                       onChange={() => toggleRegionSelection(region.code)}
                                   />
-                                  {region.name_de}
+                                  {region.name}
                                 </label>
                             ))}
                           </div>
