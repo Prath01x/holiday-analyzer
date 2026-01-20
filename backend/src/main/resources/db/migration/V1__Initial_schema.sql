@@ -31,11 +31,11 @@ CREATE TABLE IF NOT EXISTS holidays (
     date DATE NOT NULL,
     is_national BOOLEAN DEFAULT FALSE,
     country_id BIGINT NOT NULL,
-    subdivision_id BIGINT,
+    region_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_holiday_country FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE CASCADE,
-    CONSTRAINT fk_holiday_region FOREIGN KEY (subdivision_id) REFERENCES regions(id) ON DELETE CASCADE
+    CONSTRAINT fk_holiday_region FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE CASCADE
 );
 
 -- Create school_holidays table (vacation periods)
@@ -44,10 +44,11 @@ CREATE TABLE IF NOT EXISTS school_holidays (
     name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    subdivision_id BIGINT NOT NULL,
+    year INTEGER NOT NULL,
+    region_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_school_holiday_region FOREIGN KEY (subdivision_id) REFERENCES regions(id) ON DELETE CASCADE,
+    CONSTRAINT fk_school_holiday_region FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE CASCADE,
     CONSTRAINT chk_school_holiday_dates CHECK (end_date >= start_date)
 );
 
@@ -66,9 +67,9 @@ CREATE TABLE IF NOT EXISTS users (
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_holidays_date ON holidays(date);
 CREATE INDEX IF NOT EXISTS idx_holidays_country ON holidays(country_id);
-CREATE INDEX IF NOT EXISTS idx_holidays_region ON holidays(subdivision_id);
+CREATE INDEX IF NOT EXISTS idx_holidays_region ON holidays(region_id);
 CREATE INDEX IF NOT EXISTS idx_school_holidays_dates ON school_holidays(start_date, end_date);
-CREATE INDEX IF NOT EXISTS idx_school_holidays_region ON school_holidays(subdivision_id);
+CREATE INDEX IF NOT EXISTS idx_school_holidays_region ON school_holidays(region_id);
 CREATE INDEX IF NOT EXISTS idx_regions_country ON regions(country_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
