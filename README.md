@@ -5,11 +5,51 @@
 [![Docker Build](https://github.com/Prath01x/holiday-analyzer/actions/workflows/docker-build.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/docker-build.yml)
 [![Code Quality](https://github.com/Prath01x/holiday-analyzer/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Prath01x/holiday-analyzer/actions/workflows/code-quality.yml)
 
-A cloud-native application for analyzing public holidays across European countries.
+A cloud-native application for analyzing public holidays and vacation periods across European countries.
+
+## 👥 Team
+
+| Name | Student ID |
+|------|------------|
+| Lucas Schiegl | 877299 |
+| Pratham Malhotra | 889343 |
 
 ## 📋 Project Overview
 
-This application is built as part of the Cloud Native Software Engineering course. It collects and analyzes public holiday data from European countries to identify travel patterns and peak vacation periods.
+This application was developed as part of the Cloud Native Software Engineering course at Hochschule Kaiserslautern. It helps users identify optimal travel periods by analyzing when many or few people in a destination country are on vacation.
+
+### Live Demo
+
+The application is currently deployed on Google Cloud Platform and accessible at:
+
+**🌐 http://35.242.201.112**
+
+## 🎯 Features & Usage
+
+### For Users: Vacation Planning
+
+1. **Select a Country**: Choose the country you want to travel to.
+
+2. **Analyze the Calendar View**: The calendar uses a color-coded system to show how busy certain periods are:
+   - **Green days**: Few people are on vacation – ideal travel time
+   - **Yellow days**: Medium occupancy
+   - **Red days**: Many people have holidays or school vacations – highly frequented periods you might want to avoid
+
+3. **Select a Time Period**: Once you select a date range in the calendar, detailed information is displayed:
+   - Which regions have time off during this period
+   - How many inhabitants in each region are affected
+   - Whether it's public holidays or school vacations
+
+This allows you to identify periods when tourist hotspots are less crowded.
+
+### For Administrators: Data Management
+
+As an administrator, you have additional capabilities for data maintenance:
+
+- **Create Countries**: Add new European countries with population data
+- **Manage Regions**: Create states, cantons, or other administrative units and assign them to countries
+- **Add Public Holidays**: Record national and regional holidays with dates
+- **Maintain Vacation Periods**: Create school holidays and other vacation periods per region
 
 ## 🛠️ Technology Stack
 
@@ -26,6 +66,7 @@ This application is built as part of the Cloud Native Software Engineering cours
 
 ### DevOps
 - **Docker** & **Docker Compose** for containerization
+- **Kubernetes** for orchestration on Google Cloud Platform
 - **PostgreSQL 15** database
 - **GitHub Actions** for CI/CD pipeline
 - **ESLint** & **Prettier** for code quality
@@ -42,7 +83,7 @@ holiday-analyzer/
 │   │   └── test/
 │   ├── Dockerfile
 │   └── pom.xml
-├── frontend/            # React + TypeScript application
+├── frontend/             # React + TypeScript application
 │   ├── src/
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -68,7 +109,7 @@ holiday-analyzer/
 
 ## 🐳 Running with Docker (Easiest)
 
-This is the recommended way to run the entire application:
+This is the recommended way to run the entire application locally:
 
 ```bash
 # Navigate to project directory
@@ -165,7 +206,7 @@ Once everything is running:
 
 1. **Frontend**: Open http://localhost:5173 (local) or http://localhost:3000 (Docker)
 2. **Backend**: Open http://localhost:8080
-   - You'll see a 404 error page - this is normal, no endpoints are defined yet
+   - You'll see a 404 error page – this is normal, the root URL has no endpoint
 3. **Database**: Connect to `localhost:5432` with credentials:
    - Database: `holidays`
    - User: `postgres`
@@ -242,6 +283,36 @@ server: {
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+This project includes a comprehensive CI/CD pipeline using GitHub Actions:
+
+### Automated Workflows
+
+- **Backend CI**: Runs tests, builds, and code quality checks on backend changes
+- **Frontend CI**: Lints, tests, and builds frontend on code changes
+- **Docker Build**: Builds and pushes Docker images to GitHub Container Registry
+- **Code Quality**: Runs Prettier, dependency review, and security scans
+
+### Running Locally
+
+```bash
+# Frontend linting and formatting
+cd frontend
+npm run lint          # Check for linting errors
+npm run lint:fix      # Auto-fix linting errors
+npm run format:check  # Check code formatting
+npm run format        # Auto-format code
+
+# Backend tests
+cd backend
+mvn test
+```
+
+For more details, see [CI/CD Documentation](.github/workflows/README.md)
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Backend won't start
@@ -289,66 +360,9 @@ docker-compose down
 docker-compose up --build --force-recreate
 ```
 
----
-
-## 🔄 CI/CD Pipeline
-
-This project includes a comprehensive CI/CD pipeline using GitHub Actions:
-
-### Automated Workflows
-
-- **Backend CI**: Runs tests, builds, and code quality checks on backend changes
-- **Frontend CI**: Lints, tests, and builds frontend on code changes
-- **Docker Build**: Builds and pushes Docker images to GitHub Container Registry
-- **Code Quality**: Runs Prettier, dependency review, and security scans
-
-### Running Locally
-
-```bash
-# Frontend linting and formatting
-cd frontend
-npm run lint          # Check for linting errors
-npm run lint:fix      # Auto-fix linting errors
-npm run format:check  # Check code formatting
-npm run format        # Auto-format code
-
-# Backend tests
-cd backend
-mvn test
-```
-
-For more details, see [CI/CD Documentation](.github/workflows/README.md)
-
----
-
-## 👥 Team Members
-
-- Lucas [Matrikelnummer]
-- [Name 2] [Matrikelnummer]
-- [Name 3] [Matrikelnummer]
-
----
-
-## 📚 Next Steps
-
-1. ✅ Project setup complete
-2. ⏳ Create database entities (Country, Holiday)
-3. ⏳ Implement REST API endpoints
-4. ⏳ Build frontend components
-5. ⏳ Integrate external holiday APIs
-6. ⏳ Deploy to Google Cloud Platform (GKE)
-
----
-
-## 📄 License
-
-This project is created for educational purposes as part of the Cloud Native Software Engineering course.
-
----
-
-## 🆘 Need Help?
-
-- Check the troubleshooting section above
-- Review Docker logs: `docker-compose logs -f`
-- Ensure all prerequisites are installed
-- Verify no `#` character in folder path (Vite requirement)
+## Screenshot<img width="1879" height="902" alt="2026-01-20 16 50 57 localhost 12945fb4b6cf" src="https://github.com/user-attachments/assets/b0629933-e080-42af-b0f9-a43ab9502745" />
+<img width="1871" height="4054" alt="2026-01-20 16 50 48 localhost 7fca8127bc89" src="https://github.com/user-attachments/assets/d4e874db-1185-49bd-8f7a-f65d54a8a814" />
+<img width="1871" height="1480" alt="2026-01-20 16 50 42 localhost ae57f69865e5" src="https://github.com/user-attachments/assets/baf22c26-073d-4b17-b2c1-414441a7dbcb" />
+<img width="686" height="844" alt="2026-01-20 16 50 26 localhost cf4c8974bc8a" src="https://github.com/user-attachments/assets/49b2f466-fa25-4839-b7fc-c16827777434" />
+<img width="1871" height="1239" alt="2026-01-20 16 48 03 localhost c64bb898d247" src="https://github.com/user-attachments/assets/83e31926-115b-4632-ac2a-4e381224e8e1" />
+s
