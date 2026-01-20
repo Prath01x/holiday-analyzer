@@ -494,13 +494,13 @@ gcloud sql instances patch holiday-analyzer-db \
 
 ```bash
 # Step 1: Resume Cloud SQL
-gcloud sql instances patch holiday-analyzer-db \
-  --activation-policy=ALWAYS \
+gcloud sql instances patch holiday-analyzer-db `
+  --activation-policy=ALWAYS `
   --project=august-impact-479818-r1
 
 # Step 2: Create cluster
-gcloud container clusters create-auto holiday-analyzer-cluster \
-  --region=europe-west3 \
+gcloud container clusters create-auto holiday-analyzer-cluster '
+  --region=europe-west3 '
   --project=august-impact-479818-r1
 
 # Step 3: Configure kubectl
