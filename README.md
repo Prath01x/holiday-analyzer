@@ -46,7 +46,7 @@ This application was developed as part of the Cloud Native Software Engineering 
 
 ### Live Demo
 
-**🌐 Production**: http://35.242.201.112 (when cluster is running)
+**🌐 Production**: http://35.246.247.51 (when cluster is running)
 
 **Default Admin Credentials**:
 - Username: `admin`
@@ -327,6 +327,12 @@ gcloud sql instances create holiday-analyzer-db \
   --database-version=POSTGRES_15 \
   --tier=db-f1-micro \
   --region=europe-west3 \
+  --root-password=YOUR_SECURE_PASSWORD \
+  --project=august-impact-479818-r1
+
+# Create the holidays database
+gcloud sql databases create holidays \
+  --instance=holiday-analyzer-db \
   --project=august-impact-479818-r1
 
 # Or resume if paused
@@ -419,10 +425,13 @@ kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/secrets.yaml
 
-# 3. Deploy backend (includes Cloud SQL Proxy)
+# 3. Create ServiceAccount (required for Workload Identity)
+kubectl apply -f k8s/serviceaccount.yaml
+
+# 4. Deploy backend (includes Cloud SQL Proxy)
 kubectl apply -f k8s/backend/
 
-# 4. Deploy frontend
+# 5. Deploy frontend
 kubectl apply -f k8s/frontend/
 
 # 5. (Optional) Apply Ingress
@@ -499,8 +508,8 @@ gcloud sql instances patch holiday-analyzer-db `
   --project=august-impact-479818-r1
 
 # Step 2: Create cluster
-gcloud container clusters create-auto holiday-analyzer-cluster '
-  --region=europe-west3 '
+gcloud container clusters create-auto holiday-analyzer-cluster `
+  --region=europe-west3 `
   --project=august-impact-479818-r1
 
 # Step 3: Configure kubectl
@@ -512,6 +521,7 @@ gcloud container clusters get-credentials holiday-analyzer-cluster \
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/serviceaccount.yaml
 kubectl apply -f k8s/backend/
 kubectl apply -f k8s/frontend/
 
