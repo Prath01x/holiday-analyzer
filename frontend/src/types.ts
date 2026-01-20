@@ -36,13 +36,6 @@ export interface SubdivisionInfo {
   population: number;
 }
 
-export interface DayAnalysis {
-  date: string;
-  loadPercentage: number;
-  level: 'very_low' | 'low' | 'medium_low' | 'medium' | 'high' | 'very_high';
-  holidays: Holiday[];
-}
-
 export interface WeekendAnalysis {
   startDate: string;
   endDate: string;
