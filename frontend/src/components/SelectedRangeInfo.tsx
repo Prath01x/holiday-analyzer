@@ -56,7 +56,7 @@ const SelectedRangeInfo = ({ startDate, endDate, dayAnalyses }: Props) => {
         ).values()
     );
 
-    // HILFSFUNKTIONEN - VOR DER GRUPPIERUNG!
+    // HILFSFUNKTIONEN
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('de-DE', {

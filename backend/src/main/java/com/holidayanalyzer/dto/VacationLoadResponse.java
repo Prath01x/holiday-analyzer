@@ -6,7 +6,7 @@ import java.util.List;
 public class VacationLoadResponse {
 
     private int year;
-    private long countryPopulation;  // NEU!
+    private long countryPopulation;
     private List<WeeklyLoad> weeklyLoads;
     private List<DailyLoad> dailyLoads;
     private PeakPeriod peakPeriod;
@@ -16,8 +16,8 @@ public class VacationLoadResponse {
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
 
-    public long getCountryPopulation() { return countryPopulation; }  // NEU!
-    public void setCountryPopulation(long countryPopulation) { this.countryPopulation = countryPopulation; }  // NEU!
+    public long getCountryPopulation() { return countryPopulation; }
+    public void setCountryPopulation(long countryPopulation) { this.countryPopulation = countryPopulation; }
 
     public List<WeeklyLoad> getWeeklyLoads() { return weeklyLoads; }
     public void setWeeklyLoads(List<WeeklyLoad> weeklyLoads) { this.weeklyLoads = weeklyLoads; }

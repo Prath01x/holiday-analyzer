@@ -64,7 +64,7 @@ public class AdminHolidayController {
             @RequestParam(required = false) String regionCode,
             @RequestParam(required = false) String englishName) {
 
-        // Country-Objekt laden (WICHTIG!)
+        // Country-Objekt laden
         Country country = countryRepository.findByCode(countryCode)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown country code: " + countryCode));
 
@@ -73,7 +73,7 @@ public class AdminHolidayController {
         holiday.setEnglishName(englishName != null ? englishName : name);
         holiday.setDate(date);
         holiday.setCountryCode(countryCode);
-        holiday.setCountry(country);  // Country-Objekt setzen!
+        holiday.setCountry(country);
         holiday.setYear(date.getYear());
         holiday.setTypes("Public");
 
