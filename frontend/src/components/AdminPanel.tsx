@@ -91,7 +91,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const loadRegionsGrouped = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/regions');
+      const response = await fetch('/api/regions');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -146,7 +146,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchHolidays = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/holidays');
+      const response = await fetch('/api/holidays');
       const data = await response.json();
       setHolidays(data);
     } catch (error) {
@@ -156,7 +156,7 @@ const AdminPanel = ({ onBack }: Props) => {
 
   const fetchSchoolHolidays = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/school-holidays');
+      const response = await fetch('/api/school-holidays');
       const data = await response.json();
       setSchoolHolidays(data);
     } catch (error) {
@@ -186,7 +186,7 @@ const AdminPanel = ({ onBack }: Props) => {
         });
 
         const response = await fetch(
-            `http://localhost:8080/api/admin/countries/${editingCountry.id}?${params}`,
+            `/api/admin/countries/${editingCountry.id}?${params}`,
             {
               method: 'PUT',
               headers: { 'Authorization': `Bearer ${token}` }
@@ -208,7 +208,7 @@ const AdminPanel = ({ onBack }: Props) => {
         });
 
         const response = await fetch(
-            `http://localhost:8080/api/admin/countries?${params}`,
+            `/api/admin/countries?${params}`,
             {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${token}` }
@@ -254,7 +254,7 @@ const AdminPanel = ({ onBack }: Props) => {
       const token = localStorage.getItem('token');
 
       const response = await fetch(
-          `http://localhost:8080/api/admin/countries/${id}`,
+          `/api/admin/countries/${id}`,
           {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -293,7 +293,7 @@ const AdminPanel = ({ onBack }: Props) => {
       });
 
       const response = await fetch(
-          `http://localhost:8080/api/admin/regions?${params}`,
+          `/api/admin/regions?${params}`,
           {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -359,7 +359,7 @@ const AdminPanel = ({ onBack }: Props) => {
           });
 
           const response = await fetch(
-              `http://localhost:8080/api/admin/school-holidays?${queryParams}`,
+              `/api/admin/school-holidays?${queryParams}`,
               {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -383,7 +383,7 @@ const AdminPanel = ({ onBack }: Props) => {
           });
 
           const response = await fetch(
-              `http://localhost:8080/api/admin/holidays?${queryParams}`,
+              `/api/admin/holidays?${queryParams}`,
               {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -415,7 +415,7 @@ const AdminPanel = ({ onBack }: Props) => {
             });
 
             const response = await fetch(
-                `http://localhost:8080/api/admin/holidays?${queryParams}`,
+                `/api/admin/holidays?${queryParams}`,
                 {
                   method: 'POST',
                   headers: { 'Authorization': `Bearer ${token}` }
