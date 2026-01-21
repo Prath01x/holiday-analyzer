@@ -16,3 +16,6 @@ logs/
 # Environment
 .env
 .env.local
+
+# Kubernetes Secrets (contains sensitive credentials)
+k8s/secrets.yaml

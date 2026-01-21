@@ -1,5 +1,21 @@
 # Kubernetes Deployment für Holiday Analyzer
 
+## ⚠️ Secrets Management
+
+**WICHTIG**: Vor dem Deployment müssen Sie die Secrets konfigurieren!
+
+```bash
+# 1. Kopieren Sie die Beispieldatei
+cp secrets.yaml.example secrets.yaml
+
+# 2. Bearbeiten Sie secrets.yaml und ersetzen Sie die Platzhalter:
+#    - POSTGRES_PASSWORD: Ihr Cloud SQL Passwort
+#    - JWT_SECRET: Generieren Sie einen sicheren Key (z.B. mit: openssl rand -base64 64)
+#    - CLOUD_SQL_CONNECTION_NAME: Ihr Projekt:Region:Instanz (z.B. august-impact-479818-r1:europe-west3:holiday-analyzer-db)
+
+# 3. secrets.yaml wird NICHT in Git committed (ist in .gitignore)
+```
+
 ## Voraussetzungen
 - Google Cloud SDK installiert (inkl. `gcloud auth login`)
 - kubectl installiert
@@ -7,6 +23,7 @@
 - Cloud SQL Instanz `holiday-analyzer-db` (PostgreSQL) vorhanden
 - Docker Images in Google Container Registry (GCR)
 - **Zugriff auf GCP Projekt** (Owner/Editor Rolle erforderlich)
+- **Secrets konfiguriert** (siehe oben)
 
 ## Infrastruktur hochfahren (nur CLI, keine YAML-Änderungen nötig)
 
