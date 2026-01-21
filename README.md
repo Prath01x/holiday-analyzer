@@ -1051,6 +1051,16 @@ Part of the Holiday Analyzer project - Cloud Native Software Engineering course.
 - [ ] Restart Kubernetes deployments
 - [ ] Verify deployment status
 
+## Screenshots & Demovideo
+<img width="1871" height="4054" alt="2026-01-20 16 50 48 localhost 7fca8127bc89" src="https://github.com/user-attachments/assets/09aa6784-7457-4551-8139-fe03b14be26c" />
+<img width="1871" height="1480" alt="2026-01-20 16 50 42 localhost ae57f69865e5" src="https://github.com/user-attachments/assets/7431f5b1-a28d-4020-ac96-f1875869054d" />
+<img width="686" height="844" alt="2026-01-20 16 50 26 localhost cf4c8974bc8a" src="https://github.com/user-attachments/assets/76f69e09-f7da-4725-a8df-ce1942bba534" />
+<img width="1871" height="1239" alt="2026-01-20 16 48 03 localhost c64bb898d247" src="https://github.com/user-attachments/assets/fd77230c-5dee-4d9c-9af0-d1a8ea2fd347" />
+
+Demovideo:
+https://youtu.be/o5nPvdCOWX0
+
+
 ---
 
 **Last Updated**: January 20, 2026  
