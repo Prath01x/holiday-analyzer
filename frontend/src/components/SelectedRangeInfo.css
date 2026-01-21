@@ -1,0 +1,309 @@
+.selected-range-info {
+    background-color: var(--color-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selected-range-info h3 {
+    margin: 0 0 0.75rem 0;
+    color: var(--color-dark);
+    font-size: 1.25rem;
+}
+
+.range-display {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--color-secondary);
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* STATISTIK OBEN - 3 CARDS */
+.range-stats-top {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.stat-holidays {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.stat-vacations {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.stat-affected {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-content {
+    color: white;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.95;
+    font-weight: 500;
+}
+
+.stat-percentage {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+    font-weight: 400;
+}
+
+/* SECTION TITLES */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-secondary);
+}
+
+.holidays-section,
+.school-holidays-section {
+    margin-top: 1.5rem;
+}
+
+/* FEIERTAGE KOMPAKT */
+.holidays-list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.holiday-card-compact {
+    background: white;
+    border-radius: 8px;
+    padding: 0.75rem;
+    border-left: 4px solid #f093fb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.holiday-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.country-flag-small {
+    font-weight: 600;
+    color: #f093fb;
+    font-size: 0.9rem;
+}
+
+.region-name-compact {
+    font-weight: 600;
+    color: var(--color-dark);
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.population-badge-small {
+    background: #fce7f3;
+    color: #f093fb;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.holidays-content-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-left: 1.5rem;
+}
+
+.holiday-item-compact {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.holiday-date-compact {
+    color: #666;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.holiday-name-compact {
+    color: var(--color-dark);
+}
+
+/* SCHULFERIEN GRUPPIERT */
+.school-holidays-list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.school-holiday-group-compact {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid #4facfe;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.school-holiday-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.school-holiday-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.holiday-name-bold {
+    font-weight: 700;
+    color: var(--color-dark);
+    font-size: 1rem;
+}
+
+.holiday-dates-compact {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.total-population-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(79, 172, 254, 0.3);
+}
+
+.regions-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.region-item-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.region-item-compact:hover {
+    background: #f3f4f6;
+}
+
+.country-flag-tiny {
+    font-weight: 600;
+    color: #4facfe;
+    font-size: 0.8rem;
+}
+
+.region-name-tiny {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--color-dark);
+}
+
+.region-population-tiny {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    background: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .range-stats-top {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .regions-grid-compact {
+        grid-template-columns: 1fr;
+    }
+}
+
+holiday-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.holiday-group-compact {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid #f093fb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.holiday-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.holiday-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+@media (max-width: 640px) {
+    .range-stats-top {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .school-holiday-header-compact {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}

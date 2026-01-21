@@ -1,0 +1,106 @@
+.current-holidays {
+    height: 100%;
+}
+
+.current-holidays-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.holidays-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.no-holidays {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+    font-style: italic;
+}
+
+.holiday-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.holiday-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.holiday-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.holiday-region {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.holiday-region strong {
+    color: var(--color-dark);
+    font-size: 1rem;
+}
+
+.holiday-country {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.holiday-status {
+    background-color: var(--color-secondary);
+    color: var(--color-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.holiday-name {
+    color: var(--color-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.holiday-dates {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.holiday-population {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.population-icon {
+    font-size: 1rem;
+}
+
+.population-value {
+    font-weight: 500;
+}
+
+@media (max-width: 1200px) {
+    .holidays-list {
+        max-height: none;
+    }
+}

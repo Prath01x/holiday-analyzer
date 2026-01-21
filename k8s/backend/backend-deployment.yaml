@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: holiday-analyzer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      serviceAccountName: backend-sa
+      containers:
+      - name: backend
+        image: gcr.io/august-impact-479818-r1/holiday-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: holiday-analyzer-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: DB_URL
+          value: "jdbc:postgresql://127.0.0.1:5432/holidays"
+        - name: DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: holiday-analyzer-config
+              key: POSTGRES_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: holiday-analyzer-secrets
+              key: POSTGRES_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: holiday-analyzer-secrets
+              key: JWT_SECRET
+        - name: CLOUD_SQL_CONNECTION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: holiday-analyzer-secrets
+              key: CLOUD_SQL_CONNECTION_NAME
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/countries
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/countries
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      - name: cloud-sql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.37.2
+        env:
+        - name: CLOUD_SQL_CONNECTION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: holiday-analyzer-secrets
+              key: CLOUD_SQL_CONNECTION_NAME
+        command:
+        - /cloud_sql_proxy
+        - -log_debug_stdout
+        - -enable_iam_login=false
+        - -instances=$(CLOUD_SQL_CONNECTION_NAME)=tcp:5432
+        securityContext:
+          runAsNonRoot: true
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"

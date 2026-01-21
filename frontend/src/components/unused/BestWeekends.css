@@ -1,0 +1,97 @@
+.best-weekends {
+    height: 100%;
+}
+
+.best-weekends-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.weekends-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.weekend-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.weekend-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.weekend-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-secondary);
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.weekend-content {
+    flex: 1;
+}
+
+.weekend-dates {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-dark);
+    font-size: 0.95rem;
+}
+
+.weekend-separator {
+    color: #999;
+}
+
+.weekend-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.load-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.load-percentage {
+    font-weight: bold;
+}
+
+.load-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.regions-count {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1200px) {
+    .weekends-list {
+        max-height: none;
+    }
+}
