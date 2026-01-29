@@ -46,7 +46,7 @@ This application was developed as part of the Cloud Native Software Engineering 
 
 ### Live Demo
 
-**🌐 Production**: http://35.246.247.51 (when cluster is running)
+**🌐 Production**: http://35.246.238.162 (when cluster is running)
 
 **Default Admin Credentials**:
 - Username: `admin`
